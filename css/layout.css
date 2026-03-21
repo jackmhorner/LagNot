@@ -158,13 +158,9 @@ main {
   padding: var(--sp-3);
   position: sticky;
   top: 0;
-  max-height: 100vh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  max-height: calc(100vh - var(--header-h));
+  overflow-y: hidden;
 }
-
-#day-sidebar::-webkit-scrollbar { width: 4px; }
-#day-sidebar::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
 
 #cards-area {
   flex: 1;
