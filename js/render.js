@@ -175,10 +175,13 @@ export function activateDay(index, sidebarEl, cardsAreaEl) {
   navItems.forEach((el, i) => el.classList.toggle('active', i === index));
   cards.forEach((el, i)    => el.classList.toggle('active', i === index));
 
-  // On desktop, scroll cards area to the card
+  // On desktop, scroll cards area so the card title aligns with the top
   const card = cards[index];
   if (card && window.innerWidth >= 768) {
-    cardsAreaEl.scrollTo({ top: card.offsetTop - 8, behavior: 'smooth' });
+    const areaTop = cardsAreaEl.getBoundingClientRect().top;
+    const cardTop = card.getBoundingClientRect().top;
+    const target  = cardsAreaEl.scrollTop + (cardTop - areaTop);
+    cardsAreaEl.scrollTo({ top: target, behavior: 'smooth' });
   }
 }
 
