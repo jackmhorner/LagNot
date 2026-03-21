@@ -291,6 +291,10 @@
   .day-card {
     display: block;
   }
+
+  .day-card + .day-card {
+    margin-top: var(--sp-6);
+  }
 }
 
 .day-card-title {
