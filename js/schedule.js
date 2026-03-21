@@ -398,7 +398,7 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
   items.push({
     time: '1:00 PM',
     sortKey: noonLocal,
-    category: 'sleep',
+    category: 'stay-awake',
     icon: '⚡',
     text: dayIndex <= 2
       ? 'Avoid naps longer than 20 min. If exhausted, a short "power nap" before 2 PM is OK — longer naps reset your clock to the wrong time'
