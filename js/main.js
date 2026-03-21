@@ -131,6 +131,7 @@ form.addEventListener('submit', async e => {
 
 let currentDays = [];
 let currentView = 'list';
+let currentDayIndex = 0;
 
 function applyView(view) {
   currentView = view;
@@ -143,12 +144,13 @@ function applyView(view) {
     renderTimeline(currentDays, cardsAreaEl);
   }
   cardsAreaEl.scrollTop = 0;
-  activateDay(0, sidebarEl, cardsAreaEl);
+  activateDay(currentDayIndex, sidebarEl, cardsAreaEl);
   initScrollSpy(sidebarEl, cardsAreaEl);
 }
 
 function renderSchedule(schedule) {
   currentDays = schedule.days;
+  currentDayIndex = 0;
 
   renderSummary(schedule.summary, summaryEl);
   renderDayNav(schedule.days, sidebarEl, tabStripEl);
@@ -164,7 +166,8 @@ function renderSchedule(schedule) {
   sidebarEl.addEventListener('click', e => {
     const item = e.target.closest('.day-nav-item');
     if (!item) return;
-    activateDay(parseInt(item.dataset.index, 10), sidebarEl, cardsAreaEl);
+    currentDayIndex = parseInt(item.dataset.index, 10);
+    activateDay(currentDayIndex, sidebarEl, cardsAreaEl);
   });
 
   // Forward wheel events from sidebar nav to cards area
@@ -181,8 +184,8 @@ function renderSchedule(schedule) {
     btn.addEventListener('click', () => applyView(btn.dataset.view));
   });
 
-  // Keep sidebar highlight in sync with scroll position
-  initScrollSpy(sidebarEl, cardsAreaEl);
+  // Keep sidebar highlight in sync with scroll position, and track current day
+  initScrollSpy(sidebarEl, cardsAreaEl, idx => { currentDayIndex = idx; });
 
   // Wire mobile tabs
   initDayTabs(tabStripEl, cardsAreaEl);

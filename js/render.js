@@ -189,7 +189,7 @@ export function activateDay(index, sidebarEl, cardsAreaEl) {
 /**
  * Wire an IntersectionObserver so the sidebar highlight tracks scroll position.
  */
-export function initScrollSpy(sidebarEl, cardsAreaEl) {
+export function initScrollSpy(sidebarEl, cardsAreaEl, onDayChange) {
   if (window.innerWidth < 768) return;
 
   const navItems = Array.from(sidebarEl.querySelectorAll('.day-nav-item'));
@@ -202,6 +202,7 @@ export function initScrollSpy(sidebarEl, cardsAreaEl) {
         const idx = cards.indexOf(entry.target);
         if (idx >= 0) {
           navItems.forEach((el, i) => el.classList.toggle('active', i === idx));
+          onDayChange?.(idx);
           // Scroll the sidebar itself (not the page) to keep the active item visible
           const item = navItems[idx];
           if (item) {
