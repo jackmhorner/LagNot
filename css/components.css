@@ -326,31 +326,8 @@
   margin-bottom: var(--sp-3);
 }
 
-.tl-lane-header {
-  display: flex;
-  gap: 0;
-  margin-bottom: var(--sp-1);
-  padding-left: 44px;
-}
-
-.tl-lane-header .tl-lanes {
-  display: flex;
-  flex: 1;
-}
-
-.tl-lane-label {
-  flex: 1;
-  font-size: var(--text-xs);
-  color: var(--c-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-  text-align: center;
-}
-
 .tl-wrapper {
   display: flex;
-  gap: 0;
 }
 
 .tl-time-col {
@@ -369,10 +346,17 @@
   line-height: 1;
 }
 
-.tl-lanes {
+/* Right area: pill columns + optional all-day strip */
+.tl-right-area {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.tl-pill-area {
   position: relative;
   flex: 1;
-  display: flex;
+  min-width: 0;
 }
 
 .tl-rule {
@@ -383,51 +367,31 @@
   opacity: 0.5;
 }
 
-.tl-lane {
-  position: relative;
-  flex: 1;
-}
-
-/* When an all-day strip is present, shrink regular pills to not cover it */
-.tl-lane.has-allday .tl-pill:not(.tl-pill--allday) {
-  right: 20px;
-}
-
-/* All-day pill: narrow strip pinned to the right edge, full lane height */
-.tl-pill--allday {
-  position: absolute;
-  top: 0;
-  left: auto !important;
-  right: 4px;
-  width: 12px;
-  border-radius: var(--r-sm);
-  padding: 4px 0;
-  overflow: hidden;
-}
-
-/* Pills */
+/* ── Pills ── */
 .tl-pill {
   position: absolute;
-  left: 4px;
-  right: 4px;
-  border-radius: 20px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 6px;
-  gap: 2px;
+  justify-content: flex-start;
+  padding: 7px 2px 4px;
+  gap: 3px;
   overflow: hidden;
+  cursor: default;
 }
 
-.tl-pill-icon { font-size: 14px; line-height: 1; }
+.tl-pill-icon { font-size: 13px; line-height: 1; flex-shrink: 0; }
 .tl-pill-label {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   text-align: center;
   line-height: 1.2;
-  padding: 0 4px;
+  padding: 0 3px;
+  overflow: hidden;
+  word-break: break-word;
 }
 
 .tl-pill--wake        { background: #1a3a5c; color: #b8cfe8; }
@@ -441,20 +405,19 @@
 .tl-pill--caffeine        { background: #6b3e1a; color: #ffd0a0; }
 .tl-pill--caffeine-avoid  { background: #7a2510; color: #ffd0c0; }
 .tl-pill--hydration   { background: #1a4d80; color: #b0d8ff; }
+.tl-pill--flight      { background: #1e3d6b; color: #a8c8ff; }
 
-/* Milestone notes below grid */
-.tl-milestones {
-  margin-top: var(--sp-4);
-  border-top: 1px solid var(--c-border);
-  padding-top: var(--sp-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+/* All-day strip: narrow column on the right, pills fill it vertically */
+.tl-allday-strip {
+  position: relative;
+  flex: 0 0 18px;
+  margin-left: 2px;
 }
 
-.tl-milestone-note {
-  font-size: var(--text-xs);
-  color: var(--c-text-muted);
+.tl-pill--allday {
+  border-radius: var(--r-sm);
+  padding: 6px 1px;
+  justify-content: flex-start;
 }
 
 /* ── Now-line (current time indicator on timeline) ── */

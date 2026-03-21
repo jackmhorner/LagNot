@@ -2,48 +2,38 @@
 
 const HOUR_H = 44; // px per hour
 
-// Which lane (column) each category occupies
-const LANE = {
-  'wake':        0,
-  'stay-awake':  0,
-  'sleep':       0,
-  'light-seek':  1,
-  'light-avoid': 1,
-  'meal':        2,
-  'melatonin':   2,
-  'exercise':    2,
-  'caffeine':       2,
-  'caffeine-avoid': 2,
-  'hydration':   2,
-};
+// These categories carry text info only — skip in the pill grid
+const SKIP_IN_TIMELINE = new Set(['milestone', 'info']);
 
-// Default duration in hours for each category
+// Duration fallback (hours) — used only when no timelineEnd / durationHours is set
 const DURATION = {
-  'wake':        0.5,
-  'stay-awake':  1,
-  'sleep':       7.5,
-  'light-seek':  2,
-  'light-avoid': 3,
-  'meal':        1,
-  'melatonin':   0.5,
-  'exercise':    1,
+  'wake':           0.5,
+  'stay-awake':     1,
+  'sleep':          7.5,
+  'light-seek':     2,
+  'light-avoid':    3,
+  'meal':           1,
+  'melatonin':      0.5,
+  'exercise':       1,
   'caffeine':       4,
   'caffeine-avoid': 4,
-  'hydration':   0.5,
+  'hydration':      0.5,
+  'flight':         8,
 };
 
 const LABEL = {
-  'wake':        'Wake Up',
-  'stay-awake':  'Stay Awake',
-  'sleep':       'Sleep',
-  'light-seek':  'Seek light',
-  'light-avoid': 'Avoid light',
-  'meal':        'Eat',
-  'melatonin':   'Melatonin',
-  'exercise':    'Exercise',
+  'wake':           'Wake',
+  'stay-awake':     'Stay Awake',
+  'sleep':          'Sleep',
+  'light-seek':     'Seek Light',
+  'light-avoid':    'Avoid Light',
+  'meal':           'Eat',
+  'melatonin':      'Melatonin',
+  'exercise':       'Exercise',
   'caffeine':       'Caffeine OK',
   'caffeine-avoid': 'No Caffeine',
-  'hydration':   'Hydrate',
+  'hydration':      'Hydrate',
+  'flight':         'Flight',
 };
 
 /**
@@ -62,41 +52,12 @@ function buildTimelineCard(day, index, isToday = false) {
   card.className = 'day-card tl-card';
   card.id = `day-card-${index}`;
 
-  // Header
   const header = document.createElement('div');
   header.className = 'day-card-title';
   header.innerHTML = `<span>${day.label}</span>`;
   card.appendChild(header);
 
-  // Lane header row
-  const laneHeader = document.createElement('div');
-  laneHeader.className = 'tl-lane-header';
-  laneHeader.innerHTML = `
-    <div class="tl-time-col"></div>
-    <div class="tl-lanes">
-      <div class="tl-lane-label">Sleep</div>
-      <div class="tl-lane-label">Light</div>
-      <div class="tl-lane-label">Activities</div>
-    </div>
-  `;
-  card.appendChild(laneHeader);
-
-  // Grid
   card.appendChild(buildGrid(day, isToday));
-
-  // Milestone markers (departure / arrival)
-  const milestones = day.items.filter(i => i.category === 'milestone' && i.sortKey);
-  if (milestones.length) {
-    const list = document.createElement('div');
-    list.className = 'tl-milestones';
-    milestones.forEach(m => {
-      const el = document.createElement('div');
-      el.className = 'tl-milestone-note';
-      el.textContent = `${m.icon || '✈️'} ${m.time} — ${m.text}`;
-      list.appendChild(el);
-    });
-    card.appendChild(list);
-  }
 
   return card;
 }
@@ -117,113 +78,136 @@ function buildGrid(day, isToday = false) {
   }
   wrapper.appendChild(timeCol);
 
-  // Right: pill lanes
-  const lanesEl = document.createElement('div');
-  lanesEl.className = 'tl-lanes';
-  lanesEl.style.height = `${24 * HOUR_H}px`;
+  // Separate all-day items from timed items
+  const allDayItems = [];
+  const timedItems  = [];
 
-  // Hour rule lines
-  for (let h = 0; h < 24; h++) {
-    const rule = document.createElement('div');
-    rule.className = 'tl-rule';
-    rule.style.top = `${h * HOUR_H}px`;
-    lanesEl.appendChild(rule);
-  }
-
-  // Build pills grouped by lane — separate all-day from timed items
-  const laneGroups = [
-    { timed: [], allDay: [] },
-    { timed: [], allDay: [] },
-    { timed: [], allDay: [] },
-  ];
   for (const item of day.items) {
-    const laneIdx = LANE[item.category];
-    if (laneIdx === undefined || !item.sortKey) continue;
+    if (!item.sortKey || SKIP_IN_TIMELINE.has(item.category)) continue;
 
     if (item.allDay) {
-      laneGroups[laneIdx].allDay.push(item);
+      allDayItems.push(item);
       continue;
     }
 
     const startH = localHour(item.sortKey, day.tz);
-    let dur;
+    let endH;
     if (item.timelineEnd) {
-      const endH = localHour(item.timelineEnd, day.tz);
-      const adjustedEndH = endH < startH ? endH + 24 : endH;
-      dur = Math.min(adjustedEndH - startH, 24 - startH);
+      const rawEnd = localHour(item.timelineEnd, day.tz);
+      const adjusted = rawEnd < startH ? rawEnd + 24 : rawEnd; // cross-midnight
+      endH = Math.min(adjusted, 24);
     } else {
-      const defaultDur = item.durationHours !== undefined ? item.durationHours : (DURATION[item.category] || 1);
-      dur = Math.min(defaultDur, 24 - startH);
+      const defaultDur = item.durationHours !== undefined
+        ? item.durationHours
+        : (DURATION[item.category] || 1);
+      endH = Math.min(startH + defaultDur, 24);
     }
-    laneGroups[laneIdx].timed.push({ item, startH, dur });
+    // Enforce 1-hour minimum visual height — extend downward, never earlier
+    const displayEndH = Math.max(endH, startH + 1);
+    timedItems.push({ item, startH, endH: displayEndH });
   }
 
-  laneGroups.forEach(({ timed, allDay }, laneIdx) => {
-    const laneEl = document.createElement('div');
-    laneEl.className = `tl-lane tl-lane-${laneIdx}`;
-    const hasAllDay = allDay.length > 0;
-    if (hasAllDay) laneEl.classList.add('has-allday');
+  // Sort by start time; break ties by longer duration first (better packing)
+  timedItems.sort((a, b) =>
+    a.startH - b.startH || (b.endH - b.startH) - (a.endH - a.startH)
+  );
 
-    timed.forEach(({ item, startH, dur }) => {
-      laneEl.appendChild(buildPill(item, startH, dur));
-    });
-    allDay.forEach(item => {
-      laneEl.appendChild(buildAllDayPill(item));
-    });
+  // Greedy column assignment: each item goes in the first column where it fits
+  const colEnds = []; // colEnds[i] = earliest time column i is free again
+  for (const ti of timedItems) {
+    let col = colEnds.findIndex(e => e <= ti.startH);
+    if (col === -1) {
+      col = colEnds.length;
+      colEnds.push(ti.endH);
+    } else {
+      colEnds[col] = ti.endH;
+    }
+    ti.col = col;
+  }
+  const numCols = Math.max(colEnds.length, 1);
 
-    lanesEl.appendChild(laneEl);
-  });
+  // Right area: pill columns + optional all-day strip side by side
+  const rightArea = document.createElement('div');
+  rightArea.className = 'tl-right-area';
 
-  // Now-line: red horizontal rule at the current time (today only)
+  // Pill area (the main grid with timed pills)
+  const pillArea = document.createElement('div');
+  pillArea.className = 'tl-pill-area';
+  pillArea.style.height = `${24 * HOUR_H}px`;
+
+  // Hour grid lines
+  for (let h = 0; h < 24; h++) {
+    const rule = document.createElement('div');
+    rule.className = 'tl-rule';
+    rule.style.top = `${h * HOUR_H}px`;
+    pillArea.appendChild(rule);
+  }
+
+  // Timed pills — equal width, positioned by column
+  const GAP = 3; // px between pills and edges
+  for (const { item, startH, endH, col } of timedItems) {
+    const dur = endH - startH;
+    const pill = document.createElement('div');
+    pill.className = `tl-pill tl-pill--${item.category}`;
+    pill.style.top    = `${startH * HOUR_H}px`;
+    pill.style.height = `${dur * HOUR_H - GAP}px`;
+    pill.style.left   = `calc(${(col / numCols) * 100}% + ${GAP}px)`;
+    pill.style.width  = `calc(${(1 / numCols) * 100}% - ${GAP * 2}px)`;
+    pill.title = item.text;
+
+    const icon = document.createElement('span');
+    icon.className = 'tl-pill-icon';
+    icon.textContent = item.icon || '';
+    pill.appendChild(icon);
+
+    // Label always shows (1-hour min height guarantees room)
+    if (LABEL[item.category]) {
+      const lbl = document.createElement('span');
+      lbl.className = 'tl-pill-label';
+      lbl.textContent = LABEL[item.category];
+      pill.appendChild(lbl);
+    }
+
+    pillArea.appendChild(pill);
+  }
+
+  // Current-time indicator
   if (isToday) {
     const nowH = localHour(new Date(), day.tz);
     const nowLine = document.createElement('div');
     nowLine.className = 'tl-now-line';
     nowLine.style.top = `${nowH * HOUR_H}px`;
-    lanesEl.appendChild(nowLine);
+    pillArea.appendChild(nowLine);
   }
 
-  wrapper.appendChild(lanesEl);
+  rightArea.appendChild(pillArea);
+
+  // All-day strip (e.g. hydration) — narrow column on the right
+  if (allDayItems.length > 0) {
+    const strip = document.createElement('div');
+    strip.className = 'tl-allday-strip';
+    const n = allDayItems.length;
+    allDayItems.forEach((item, i) => {
+      const pill = document.createElement('div');
+      pill.className = `tl-pill tl-pill--${item.category} tl-pill--allday`;
+      pill.style.top    = '0';
+      pill.style.height = `${24 * HOUR_H}px`;
+      pill.style.left   = `${(i / n) * 100}%`;
+      pill.style.width  = `calc(${(1 / n) * 100}% - 3px)`;
+      pill.title = item.text;
+
+      const icon = document.createElement('span');
+      icon.className = 'tl-pill-icon';
+      icon.textContent = item.icon || '';
+      pill.appendChild(icon);
+
+      strip.appendChild(pill);
+    });
+    rightArea.appendChild(strip);
+  }
+
+  wrapper.appendChild(rightArea);
   return wrapper;
-}
-
-function buildPill(item, startH, dur) {
-  // Display at least 1 hour tall — extend downward, never move the start up
-  const displayDur = Math.max(dur, 1);
-
-  const pill = document.createElement('div');
-  pill.className = `tl-pill tl-pill--${item.category}`;
-  pill.style.top = `${startH * HOUR_H}px`;
-  pill.style.height = `${displayDur * HOUR_H - 3}px`;
-  pill.title = item.text;
-
-  const icon = document.createElement('span');
-  icon.className = 'tl-pill-icon';
-  icon.textContent = item.icon || '';
-  pill.appendChild(icon);
-
-  if (displayDur >= 1) {
-    const lbl = document.createElement('span');
-    lbl.className = 'tl-pill-label';
-    lbl.textContent = LABEL[item.category] || '';
-    pill.appendChild(lbl);
-  }
-
-  return pill;
-}
-
-function buildAllDayPill(item) {
-  const pill = document.createElement('div');
-  pill.className = `tl-pill tl-pill--${item.category} tl-pill--allday`;
-  pill.style.height = `${24 * HOUR_H}px`;
-  pill.title = item.text;
-
-  const icon = document.createElement('span');
-  icon.className = 'tl-pill-icon';
-  icon.textContent = item.icon || '';
-  pill.appendChild(icon);
-
-  return pill;
 }
 
 function localHour(date, tz) {

@@ -124,11 +124,12 @@ function renderDayCard(day, index, isToday = false) {
     return card;
   }
 
-  const currentItemIdx = isToday ? findCurrentItemIndex(day.items) : -1;
+  const visibleItems = day.items.filter(item => !item.timelineOnly);
+  const currentItemIdx = isToday ? findCurrentItemIndex(visibleItems) : -1;
 
   const list = document.createElement('ul');
   list.className = 'schedule-list';
-  day.items.forEach((item, i) => list.appendChild(renderScheduleItem(item, i === currentItemIdx)));
+  visibleItems.forEach((item, i) => list.appendChild(renderScheduleItem(item, i === currentItemIdx)));
   card.appendChild(list);
 
   return card;

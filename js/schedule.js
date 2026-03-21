@@ -236,7 +236,7 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
   const items = [];
   const label = isReturn ? `Return Flight — ${formatShortDate(departureUTC, origin.tz)}` : `Departure Day & Flight — ${formatShortDate(departureUTC, origin.tz)}`;
 
-  // Departure milestone
+  // Departure milestone (list view)
   items.push({
     time: formatTime(departureUTC, origin.tz),
     sortKey: departureUTC,
@@ -245,13 +245,24 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
     text: `Departs ${origin.iata} — ${formatTime(departureUTC, origin.tz)} (${origin.city})`,
   });
 
-  // Arrival milestone
+  // Arrival milestone (list view)
   items.push({
     time: formatTime(arrivalUTC, dest.tz),
     sortKey: arrivalUTC,
     category: 'milestone',
     icon: '🛬',
     text: `Arrives ${dest.iata} — ${formatTime(arrivalUTC, dest.tz)} (${dest.city})`,
+  });
+
+  // Flight duration pill (timeline view only)
+  items.push({
+    time: formatTime(departureUTC, origin.tz),
+    sortKey: departureUTC,
+    timelineEnd: arrivalUTC,
+    category: 'flight',
+    icon: '✈️',
+    timelineOnly: true,
+    text: `Flight to ${dest.city}: ${formatTime(departureUTC, origin.tz)} → ${formatTime(arrivalUTC, dest.tz)}`,
   });
 
   // Fasting protocol
