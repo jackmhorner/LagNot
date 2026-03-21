@@ -329,10 +329,13 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
   const adaptNote = isFullyAdapted ? ' — Fully Adapted!' : '';
   const label = `${prefix} at ${dest.city}${adaptNote} — ${formatShortDate(dayDateUTC, dest.tz)}`;
 
-  // Wake time
+  // Wake time — pin sortKey to this card's calendar day so it sorts at the top
+  const wc = wallClock(dayDateUTC, dest.tz);
+  const wakeWC = wallClock(sleep.wakeTime, dest.tz);
+  const wakeSortKey = makeLocalDate(dest.tz, wc.year, wc.month, wc.day, wakeWC.hour, wakeWC.minute);
   items.push({
     time: formatTime(sleep.wakeTime, dest.tz),
-    sortKey: sleep.wakeTime,
+    sortKey: wakeSortKey,
     category: 'sleep',
     icon: '🌅',
     text: `Wake up: ${formatTime(sleep.wakeTime, dest.tz)}${isFullyAdapted ? ' — you are now fully adapted!' : ' (shifting toward local schedule)'}`,
@@ -359,7 +362,6 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
   }
 
   // Breakfast
-  const wc = wallClock(dayDateUTC, dest.tz);
   const breakfast = makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 7, 0);
   items.push({
     time: formatTime(breakfast, dest.tz),

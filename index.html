@@ -125,9 +125,17 @@
     <div id="summary-strip" aria-label="Trip summary"></div>
 
 
-    <!-- Mobile tab strip -->
-    <div id="tab-strip-wrapper" aria-label="Day navigation">
-      <div id="tab-strip" role="tablist"></div>
+    <!-- View toggle + mobile tab strip -->
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0; gap:var(--sp-4);">
+      <div id="tab-strip-wrapper" aria-label="Day navigation" style="flex:1; min-width:0;">
+        <div id="tab-strip" role="tablist"></div>
+      </div>
+      <div class="view-toggle-bar">
+        <div class="view-toggle" role="group" aria-label="Switch view">
+          <button class="view-btn active" data-view="list" title="List view">☰ List</button>
+          <button class="view-btn" data-view="timeline" title="Timeline view">⏱ Timeline</button>
+        </div>
+      </div>
     </div>
 
     <!-- Desktop + card area -->

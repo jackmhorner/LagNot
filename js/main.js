@@ -3,6 +3,7 @@
 import { loadAirports } from './airports.js';
 import { generateSchedule } from './schedule.js';
 import { renderSummary, renderDayNav, renderDayCards, activateDay, initScrollSpy } from './render.js';
+import { renderTimeline } from './timeline.js';
 import { initAirportInput, initModal, initDayTabs, showEl, hideEl, encodeHash, decodeHash, triggerPrint } from './ui.js';
 import { makeLocalDate } from './tz.js';
 
@@ -128,19 +129,36 @@ form.addEventListener('submit', async e => {
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
 
+let currentDays = [];
+let currentView = 'list';
+
+function applyView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === view);
+  });
+  if (view === 'list') {
+    renderDayCards(currentDays, cardsAreaEl);
+  } else {
+    renderTimeline(currentDays, cardsAreaEl);
+  }
+  cardsAreaEl.scrollTop = 0;
+  activateDay(0, sidebarEl, cardsAreaEl);
+  initScrollSpy(sidebarEl, cardsAreaEl);
+}
+
 function renderSchedule(schedule) {
+  currentDays = schedule.days;
+
   renderSummary(schedule.summary, summaryEl);
   renderDayNav(schedule.days, sidebarEl, tabStripEl);
-  renderDayCards(schedule.days, cardsAreaEl);
+  applyView(currentView);
 
   // Show header controls
   const { origin, dest } = schedule.summary;
   headerTripBtn.textContent = `${origin.iata} → ${dest.iata}`;
   showEl(headerTripBtn);
   showEl(headerNewBtn);
-
-  // Activate day 0 on desktop sidebar
-  activateDay(0, sidebarEl, cardsAreaEl);
 
   // Wire desktop sidebar click to scroll to card
   sidebarEl.addEventListener('click', e => {
@@ -149,8 +167,7 @@ function renderSchedule(schedule) {
     activateDay(parseInt(item.dataset.index, 10), sidebarEl, cardsAreaEl);
   });
 
-  // Forward wheel events from sidebar nav to cards area so scrolling
-  // works no matter where the cursor is
+  // Forward wheel events from sidebar nav to cards area
   const sidebarNav = document.querySelector('.schedule-layout > nav');
   if (sidebarNav) {
     sidebarNav.addEventListener('wheel', e => {
@@ -158,6 +175,11 @@ function renderSchedule(schedule) {
       e.preventDefault();
     }, { passive: false });
   }
+
+  // Wire view toggle buttons
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyView(btn.dataset.view));
+  });
 
   // Keep sidebar highlight in sync with scroll position
   initScrollSpy(sidebarEl, cardsAreaEl);
