@@ -122,7 +122,7 @@ form.addEventListener('submit', async e => {
 
   hideEl(loadingEl);
   showEl(resultsSection);
-  resultsSection.scrollIntoView({ behavior: 'smooth' });
+  window.scrollTo({ top: 0 });
 });
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
