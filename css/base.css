@@ -122,6 +122,9 @@ input, select, textarea {
 
 ul, ol { list-style: none; }
 
+/* Ensure the hidden attribute always wins over display rules */
+[hidden] { display: none !important; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

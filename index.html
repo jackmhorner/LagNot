@@ -35,9 +35,11 @@
 <!-- ── Header ──────────────────────────────────────────────────────────────── -->
 <header class="site-header">
   <a href="/" class="site-logo">Lag Not<span>!</span></a>
-  <button id="help-btn" class="btn btn-ghost" aria-haspopup="dialog" aria-controls="help-dialog">
-    ? How it works
-  </button>
+  <button id="header-trip-btn" class="header-trip-btn" hidden aria-label="Edit trip"></button>
+  <div class="header-actions">
+    <button id="header-new-btn" class="btn btn-ghost" hidden>&#8592; New Trip</button>
+    <button id="help-btn" class="btn btn-ghost" aria-haspopup="dialog" aria-controls="help-dialog">? How it works</button>
+  </div>
 </header>
 
 <!-- ── Main ───────────────────────────────────────────────────────────────── -->
@@ -121,11 +123,6 @@
     <!-- Summary -->
     <div id="summary-strip" aria-label="Trip summary"></div>
 
-    <!-- Action buttons -->
-    <div class="results-actions">
-      <button id="reset-btn" class="btn btn-secondary">&#8592; New Trip</button>
-      <button id="print-btn" class="btn btn-ghost">&#128438; Print / Save PDF</button>
-    </div>
 
     <!-- Mobile tab strip -->
     <div id="tab-strip-wrapper" aria-label="Day navigation">

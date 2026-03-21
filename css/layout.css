@@ -4,13 +4,39 @@
 .site-header {
   background: var(--c-bg-card);
   border-bottom: 1px solid var(--c-border);
-  padding: var(--sp-4) var(--sp-6);
+  padding: var(--sp-3) var(--sp-6);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--sp-4);
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-left: auto;
+}
+
+.header-trip-btn {
+  background: var(--c-bg-input);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  color: var(--c-accent);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  padding: var(--sp-2) var(--sp-4);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  letter-spacing: 0.04em;
+}
+
+.header-trip-btn:hover {
+  background: var(--c-bg-hover);
+  border-color: var(--c-accent);
 }
 
 .site-logo {

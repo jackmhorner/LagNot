@@ -22,8 +22,8 @@ const tabStripEl    = document.getElementById('tab-strip');
 const cardsAreaEl   = document.getElementById('cards-area');
 const helpBtn       = document.getElementById('help-btn');
 const helpDialog    = document.getElementById('help-dialog');
-const resetBtn      = document.getElementById('reset-btn');
-const printBtn      = document.getElementById('print-btn');
+const headerTripBtn = document.getElementById('header-trip-btn');
+const headerNewBtn  = document.getElementById('header-new-btn');
 const formError     = document.getElementById('form-error');
 const loadingEl     = document.getElementById('loading');
 
@@ -35,12 +35,26 @@ const toCtrl   = initAirportInput(toInput,   toList,   () => {});
 initModal(helpBtn, helpDialog);
 
 // ─── Print ────────────────────────────────────────────────────────────────────
-printBtn.addEventListener('click', triggerPrint);
 
-// ─── Reset ────────────────────────────────────────────────────────────────────
-resetBtn.addEventListener('click', () => {
+// ─── Header trip button (edit current trip) ───────────────────────────────────
+headerTripBtn.addEventListener('click', () => {
   hideEl(resultsSection);
   showEl(formSection);
+  hideEl(headerTripBtn);
+  hideEl(headerNewBtn);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ─── Header new trip button ───────────────────────────────────────────────────
+headerNewBtn.addEventListener('click', () => {
+  hideEl(resultsSection);
+  showEl(formSection);
+  hideEl(headerTripBtn);
+  hideEl(headerNewBtn);
+  fromCtrl.clear();
+  toCtrl.clear();
+  depDateTime.value = '';
+  retDateTime.value = '';
   window.location.hash = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
@@ -117,6 +131,12 @@ function renderSchedule(schedule) {
   renderSummary(schedule.summary, summaryEl);
   renderDayNav(schedule.days, sidebarEl, tabStripEl);
   renderDayCards(schedule.days, cardsAreaEl);
+
+  // Show header controls
+  const { origin, dest } = schedule.summary;
+  headerTripBtn.textContent = `${origin.iata} → ${dest.iata}`;
+  showEl(headerTripBtn);
+  showEl(headerNewBtn);
 
   // Activate day 0 on desktop sidebar
   activateDay(0, sidebarEl, cardsAreaEl);
