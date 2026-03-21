@@ -201,7 +201,7 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
     sortKey: departureUTC,
     category: 'milestone',
     icon: '🛫',
-    text: `Departs ${origin.iata} — ${formatTime(departureUTC, origin.tz)} ${origin.tz.split('/').pop().replace(/_/g,' ')}`,
+    text: `Departs ${origin.iata} — ${formatTime(departureUTC, origin.tz)} (${origin.city})`,
   });
 
   // Arrival milestone
@@ -210,7 +210,7 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
     sortKey: arrivalUTC,
     category: 'milestone',
     icon: '🛬',
-    text: `Arrives ${dest.iata} — ${formatTime(arrivalUTC, dest.tz)} ${dest.tz.split('/').pop().replace(/_/g,' ')}`,
+    text: `Arrives ${dest.iata} — ${formatTime(arrivalUTC, dest.tz)} (${dest.city})`,
   });
 
   // Fasting protocol
