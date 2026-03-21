@@ -53,6 +53,9 @@
   --sp-10: 2.5rem;
   --sp-12: 3rem;
 
+  /* Header height — used for sticky offsets throughout */
+  --header-h: 56px;
+
   /* Radii */
   --r-sm:  6px;
   --r-md:  10px;

@@ -11,6 +11,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  height: var(--header-h);
 }
 
 .header-actions {
@@ -154,8 +155,8 @@ main {
   border-radius: var(--r-lg);
   padding: var(--sp-3);
   position: sticky;
-  top: 72px;
-  max-height: calc(100dvh - 100px);
+  top: calc(var(--header-h) + var(--sp-4));
+  max-height: calc(100dvh - var(--header-h) - var(--sp-8));
   overflow-y: auto;
 }
 

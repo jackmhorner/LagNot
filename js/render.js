@@ -178,7 +178,7 @@ export function activateDay(index, sidebarEl, cardsAreaEl) {
   // On desktop, scroll to the card
   const card = cards[index];
   if (card && window.innerWidth >= 768) {
-    const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 60;
+    const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 56;
     const top = card.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
     window.scrollTo({ top, behavior: 'smooth' });
   }
@@ -194,7 +194,7 @@ export function initScrollSpy(sidebarEl, cardsAreaEl) {
   const cards    = Array.from(cardsAreaEl.querySelectorAll('.day-card'));
   if (!cards.length) return;
 
-  const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 60;
+  const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 56;
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
