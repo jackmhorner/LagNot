@@ -407,18 +407,6 @@
 .tl-pill--hydration   { background: #1a4d80; color: #b0d8ff; }
 .tl-pill--flight      { background: #1e3d6b; color: #a8c8ff; }
 
-/* All-day strip: narrow column on the right, pills fill it vertically */
-.tl-allday-strip {
-  position: relative;
-  flex: 0 0 18px;
-  margin-left: 2px;
-}
-
-.tl-pill--allday {
-  border-radius: var(--r-sm);
-  padding: 6px 1px;
-  justify-content: flex-start;
-}
 
 /* ── Now-line (current time indicator on timeline) ── */
 .tl-now-line {

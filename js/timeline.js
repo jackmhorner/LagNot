@@ -78,15 +78,14 @@ function buildGrid(day, isToday = false) {
   }
   wrapper.appendChild(timeCol);
 
-  // Separate all-day items from timed items
-  const allDayItems = [];
-  const timedItems  = [];
+  // Collect all timed items — all-day items span the full 24 hours
+  const timedItems = [];
 
   for (const item of day.items) {
     if (!item.sortKey || SKIP_IN_TIMELINE.has(item.category)) continue;
 
     if (item.allDay) {
-      allDayItems.push(item);
+      timedItems.push({ item, startH: 0, endH: 24 });
       continue;
     }
 
@@ -181,31 +180,6 @@ function buildGrid(day, isToday = false) {
   }
 
   rightArea.appendChild(pillArea);
-
-  // All-day strip (e.g. hydration) — narrow column on the right
-  if (allDayItems.length > 0) {
-    const strip = document.createElement('div');
-    strip.className = 'tl-allday-strip';
-    const n = allDayItems.length;
-    allDayItems.forEach((item, i) => {
-      const pill = document.createElement('div');
-      pill.className = `tl-pill tl-pill--${item.category} tl-pill--allday`;
-      pill.style.top    = '0';
-      pill.style.height = `${24 * HOUR_H}px`;
-      pill.style.left   = `${(i / n) * 100}%`;
-      pill.style.width  = `calc(${(1 / n) * 100}% - 3px)`;
-      pill.title = item.text;
-
-      const icon = document.createElement('span');
-      icon.className = 'tl-pill-icon';
-      icon.textContent = item.icon || '';
-      pill.appendChild(icon);
-
-      strip.appendChild(pill);
-    });
-    rightArea.appendChild(strip);
-  }
-
   wrapper.appendChild(rightArea);
   return wrapper;
 }
