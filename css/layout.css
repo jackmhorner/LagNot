@@ -141,13 +141,13 @@ main {
 
 /* ── Desktop two-column layout ── */
 .schedule-layout {
-  display: grid;
-  grid-template-columns: 220px 1fr;
+  display: flex;
+  align-items: flex-start;
   gap: var(--sp-6);
-  align-items: start;
 }
 
 #day-sidebar {
+  flex: 0 0 220px;
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
   border-radius: var(--r-lg);
@@ -163,6 +163,7 @@ main {
 #day-sidebar::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
 
 #cards-area {
+  flex: 1;
   min-width: 0;
 }
 
