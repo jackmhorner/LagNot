@@ -118,9 +118,11 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
   if (sleepShift) {
     const shiftDir = params.direction === 'east' ? 'earlier' : 'later';
     const mins = Math.round(Math.abs((DEFAULT_BEDTIME_HOUR - (sleepShift.bedtime.getHours() + sleepShift.bedtime.getMinutes() / 60))) * 60);
+    const wakeWC = wallClock(sleepShift.wakeTime, origin.tz);
+    const wakeSortKey = makeLocalDate(origin.tz, wc.year, wc.month, wc.day, wakeWC.hour, wakeWC.minute);
     items.push({
       time: formatTime(sleepShift.wakeTime, origin.tz),
-      sortKey: sleepShift.wakeTime,
+      sortKey: wakeSortKey,
       category: 'wake',
       icon: '🌅',
       text: `Wake up ${mins} min ${shiftDir} than usual (${formatTime(sleepShift.wakeTime, origin.tz)}) to begin shifting your body clock`,
