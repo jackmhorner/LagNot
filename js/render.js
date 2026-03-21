@@ -202,7 +202,16 @@ export function initScrollSpy(sidebarEl, cardsAreaEl) {
         const idx = cards.indexOf(entry.target);
         if (idx >= 0) {
           navItems.forEach((el, i) => el.classList.toggle('active', i === idx));
-          navItems[idx]?.scrollIntoView({ block: 'nearest' });
+          // Scroll the sidebar itself (not the page) to keep the active item visible
+          const item = navItems[idx];
+          if (item) {
+            const itemTop = item.offsetTop;
+            const itemBottom = itemTop + item.offsetHeight;
+            const sTop = sidebarEl.scrollTop;
+            const sBottom = sTop + sidebarEl.clientHeight;
+            if (itemTop < sTop) sidebarEl.scrollTop = itemTop;
+            else if (itemBottom > sBottom) sidebarEl.scrollTop = itemBottom - sidebarEl.clientHeight;
+          }
         }
       }
     });

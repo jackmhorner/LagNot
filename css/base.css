@@ -96,7 +96,6 @@ html {
   line-height: 1.6;
   color: var(--c-text);
   background: var(--c-bg);
-  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
 
