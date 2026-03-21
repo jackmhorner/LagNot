@@ -2,7 +2,7 @@
 
 import { loadAirports } from './airports.js';
 import { generateSchedule } from './schedule.js';
-import { renderSummary, renderDayNav, renderDayCards, activateDay } from './render.js';
+import { renderSummary, renderDayNav, renderDayCards, activateDay, initScrollSpy } from './render.js';
 import { initAirportInput, initModal, initDayTabs, showEl, hideEl, encodeHash, decodeHash, triggerPrint } from './ui.js';
 import { makeLocalDate } from './tz.js';
 
@@ -141,12 +141,15 @@ function renderSchedule(schedule) {
   // Activate day 0 on desktop sidebar
   activateDay(0, sidebarEl, cardsAreaEl);
 
-  // Wire desktop sidebar click to also update cards
+  // Wire desktop sidebar click to scroll to card
   sidebarEl.addEventListener('click', e => {
     const item = e.target.closest('.day-nav-item');
     if (!item) return;
     activateDay(parseInt(item.dataset.index, 10), sidebarEl, cardsAreaEl);
   });
+
+  // Keep sidebar highlight in sync with scroll position
+  initScrollSpy(sidebarEl, cardsAreaEl);
 
   // Wire mobile tabs
   initDayTabs(tabStripEl, cardsAreaEl);

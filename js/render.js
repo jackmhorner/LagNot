@@ -165,11 +165,51 @@ function renderScheduleItem(item) {
 }
 
 /**
- * Activate a day by index (desktop sidebar).
+ * Activate a day by index.
+ * On mobile: show/hide cards. On desktop: scroll to the card.
  */
 export function activateDay(index, sidebarEl, cardsAreaEl) {
   const navItems = sidebarEl.querySelectorAll('.day-nav-item');
   const cards    = cardsAreaEl.querySelectorAll('.day-card');
+
   navItems.forEach((el, i) => el.classList.toggle('active', i === index));
   cards.forEach((el, i)    => el.classList.toggle('active', i === index));
+
+  // On desktop, scroll to the card
+  const card = cards[index];
+  if (card && window.innerWidth >= 768) {
+    const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 60;
+    const top = card.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+}
+
+/**
+ * Wire an IntersectionObserver so the sidebar highlight tracks scroll position.
+ */
+export function initScrollSpy(sidebarEl, cardsAreaEl) {
+  if (window.innerWidth < 768) return;
+
+  const navItems = Array.from(sidebarEl.querySelectorAll('.day-nav-item'));
+  const cards    = Array.from(cardsAreaEl.querySelectorAll('.day-card'));
+  if (!cards.length) return;
+
+  const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 60;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const idx = cards.indexOf(entry.target);
+        if (idx >= 0) {
+          navItems.forEach((el, i) => el.classList.toggle('active', i === idx));
+          navItems[idx]?.scrollIntoView({ block: 'nearest' });
+        }
+      }
+    });
+  }, {
+    rootMargin: `-${headerHeight + 8}px 0px -60% 0px`,
+    threshold: 0,
+  });
+
+  cards.forEach(card => observer.observe(card));
 }
