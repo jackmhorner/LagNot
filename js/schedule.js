@@ -157,12 +157,14 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
       icon: '☀️',
       text: 'Get 20–30 min of bright morning light as early as possible — this shifts your clock earlier (eastward)',
     });
+    // Avoid light 1.5 hours before shifted bedtime (not hardcoded to 9 PM)
+    const avoidLightTime = sleepShift ? addHours(sleepShift.bedtime, -1.5) : makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 21, 0);
     items.push({
-      time: '9:00 PM',
-      sortKey: makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 21, 0),
+      time: formatTime(avoidLightTime, origin.tz),
+      sortKey: avoidLightTime,
       category: 'light-avoid',
       icon: '🕶️',
-      text: 'After 9 PM: dim lights, no bright screens — evening light delays your clock and will worsen eastward jet lag',
+      text: `After ${formatTime(avoidLightTime, origin.tz)}: dim lights, no bright screens — evening light delays your clock and will worsen eastward jet lag`,
     });
   } else {
     items.push({
