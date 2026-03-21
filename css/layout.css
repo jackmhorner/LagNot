@@ -53,12 +53,9 @@
 }
 
 main {
-  flex: 1 0 auto;
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: var(--sp-6) var(--sp-4);
-  overflow: visible;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .site-footer {
@@ -72,6 +69,13 @@ main {
 
 .site-footer a {
   color: var(--c-text-muted);
+}
+
+.main-inner {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-4);
 }
 
 /* ── Form section ── */
@@ -153,8 +157,8 @@ main {
   border-radius: var(--r-lg);
   padding: var(--sp-3);
   position: sticky;
-  top: calc(var(--header-h) + var(--sp-4));
-  max-height: calc(100vh - var(--header-h) - var(--sp-8));
+  top: 0;
+  max-height: 100vh;
   overflow-y: auto;
   overscroll-behavior: contain;
 }

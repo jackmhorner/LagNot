@@ -175,12 +175,12 @@ export function activateDay(index, sidebarEl, cardsAreaEl) {
   navItems.forEach((el, i) => el.classList.toggle('active', i === index));
   cards.forEach((el, i)    => el.classList.toggle('active', i === index));
 
-  // On desktop, scroll to the card
+  // On desktop, scroll main to the card
   const card = cards[index];
   if (card && window.innerWidth >= 768) {
-    const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 56;
-    const top = card.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
-    window.scrollTo({ top, behavior: 'smooth' });
+    const mainEl = document.querySelector('main');
+    const top = card.offsetTop - 16;
+    mainEl.scrollTo({ top, behavior: 'smooth' });
   }
 }
 
@@ -195,6 +195,8 @@ export function initScrollSpy(sidebarEl, cardsAreaEl) {
   if (!cards.length) return;
 
   const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 56;
+
+  const mainEl = document.querySelector('main');
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
@@ -216,7 +218,8 @@ export function initScrollSpy(sidebarEl, cardsAreaEl) {
       }
     });
   }, {
-    rootMargin: `-${headerHeight + 8}px 0px -60% 0px`,
+    root: mainEl,
+    rootMargin: `0px 0px -60% 0px`,
     threshold: 0,
   });
 

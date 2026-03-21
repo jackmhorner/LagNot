@@ -90,6 +90,11 @@
   }
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 html {
   font-family: var(--font-sans);
   font-size: 16px;
@@ -100,7 +105,6 @@ html {
 }
 
 body {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }

@@ -26,6 +26,7 @@ const headerTripBtn = document.getElementById('header-trip-btn');
 const headerNewBtn  = document.getElementById('header-new-btn');
 const formError     = document.getElementById('form-error');
 const loadingEl     = document.getElementById('loading');
+const mainEl        = document.querySelector('main');
 
 // ─── Airport inputs ───────────────────────────────────────────────────────────
 const fromCtrl = initAirportInput(fromInput, fromList, () => {});
@@ -42,7 +43,7 @@ headerTripBtn.addEventListener('click', () => {
   showEl(formSection);
   hideEl(headerTripBtn);
   hideEl(headerNewBtn);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  mainEl.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 // ─── Header new trip button ───────────────────────────────────────────────────
@@ -56,7 +57,7 @@ headerNewBtn.addEventListener('click', () => {
   depDateTime.value = '';
   retDateTime.value = '';
   window.location.hash = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  mainEl.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 // ─── Form submit ──────────────────────────────────────────────────────────────
@@ -122,7 +123,7 @@ form.addEventListener('submit', async e => {
 
   hideEl(loadingEl);
   showEl(resultsSection);
-  window.scrollTo({ top: 0 });
+  mainEl.scrollTo({ top: 0 });
 });
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
