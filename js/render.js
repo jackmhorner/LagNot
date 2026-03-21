@@ -1,5 +1,7 @@
 // DOM rendering — turns the schedule model into HTML
 
+const MILESTONE_CATEGORIES = new Set(['milestone']);
+
 const CATEGORY_META = {
   'sleep':       { color: 'navy',   label: 'Sleep'    },
   'light-seek':  { color: 'amber',  label: 'Light ☀️' },
@@ -113,7 +115,22 @@ function renderDayCard(day, index) {
   return card;
 }
 
+function renderMilestone(item) {
+  const li = document.createElement('li');
+  li.className = 'schedule-milestone';
+  li.innerHTML = `
+    <span class="milestone-icon">${item.icon}</span>
+    <span class="milestone-text">${item.text}</span>
+    <span class="milestone-time">${item.time}</span>
+  `;
+  return li;
+}
+
 function renderScheduleItem(item) {
+  if (MILESTONE_CATEGORIES.has(item.category)) {
+    return renderMilestone(item);
+  }
+
   const li = document.createElement('li');
   li.className = `schedule-item cat-${item.category}`;
 

@@ -195,6 +195,24 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
   const items = [];
   const label = isReturn ? `Return Flight — ${formatShortDate(departureUTC, origin.tz)}` : `Departure Day & Flight — ${formatShortDate(departureUTC, origin.tz)}`;
 
+  // Departure milestone
+  items.push({
+    time: formatTime(departureUTC, origin.tz),
+    sortKey: departureUTC,
+    category: 'milestone',
+    icon: '🛫',
+    text: `Departs ${origin.iata} — ${formatTime(departureUTC, origin.tz)} ${origin.tz.split('/').pop().replace(/_/g,' ')}`,
+  });
+
+  // Arrival milestone
+  items.push({
+    time: formatTime(arrivalUTC, dest.tz),
+    sortKey: arrivalUTC,
+    category: 'milestone',
+    icon: '🛬',
+    text: `Arrives ${dest.iata} — ${formatTime(arrivalUTC, dest.tz)} ${dest.tz.split('/').pop().replace(/_/g,' ')}`,
+  });
+
   // Fasting protocol
   const fast = getFastingProtocol(departureUTC, arrivalUTC, dest);
   if (fast.durationHours >= 8) {
@@ -247,7 +265,7 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
   // Clock change
   items.push({
     time: formatTime(departureUTC, origin.tz),
-    sortKey: departureUTC,
+    sortKey: addHours(departureUTC, 0.01),
     category: 'info',
     icon: '🕐',
     text: `Set your watch and phone to destination time (${dest.iata} — ${dest.city}) immediately on takeoff`,
@@ -271,13 +289,13 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
     text: 'Use caffeine only to stay awake if it is daytime at your destination; avoid it for the last 10 hours before your target destination bedtime',
   });
 
-  // Arrival note
+  // Post-arrival nudge
   items.push({
     time: formatTime(arrivalUTC, dest.tz),
-    sortKey: arrivalUTC,
+    sortKey: addHours(arrivalUTC, 0.01),
     category: 'info',
-    icon: '✈️',
-    text: `Arrive ${dest.city} — ${formatTime(arrivalUTC, dest.tz)} local time. Push through to local bedtime if at all possible`,
+    icon: '💪',
+    text: `Push through to local bedtime if at all possible — do not nap on arrival`,
   });
 
   return makeDay({ label, date: departureUTC, phase: 'flight', items, tz: origin.tz });
