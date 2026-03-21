@@ -12,7 +12,8 @@ const LANE = {
   'meal':        2,
   'melatonin':   2,
   'exercise':    2,
-  'caffeine':    2,
+  'caffeine':       2,
+  'caffeine-avoid': 2,
   'hydration':   2,
 };
 
@@ -26,7 +27,8 @@ const DURATION = {
   'meal':        1,
   'melatonin':   0.5,
   'exercise':    1,
-  'caffeine':    0.5,
+  'caffeine':       4,
+  'caffeine-avoid': 4,
   'hydration':   0.5,
 };
 
@@ -39,7 +41,8 @@ const LABEL = {
   'meal':        'Eat',
   'melatonin':   'Melatonin',
   'exercise':    'Exercise',
-  'caffeine':    'Caffeine OK',
+  'caffeine':       'Caffeine OK',
+  'caffeine-avoid': 'No Caffeine',
   'hydration':   'Hydrate',
 };
 
@@ -133,7 +136,16 @@ function buildGrid(day, isToday = false) {
     const laneIdx = LANE[item.category];
     if (laneIdx === undefined || !item.sortKey) continue;
     const startH = localHour(item.sortKey, day.tz);
-    const dur = Math.min(DURATION[item.category] || 1, 24 - startH);
+    let dur;
+    if (item.timelineEnd) {
+      // Use explicit end time — clip at midnight for single-day grid
+      const endH = localHour(item.timelineEnd, day.tz);
+      const adjustedEndH = endH < startH ? endH + 24 : endH; // handle cross-midnight
+      dur = Math.min(adjustedEndH - startH, 24 - startH);
+    } else {
+      const defaultDur = item.durationHours !== undefined ? item.durationHours : (DURATION[item.category] || 1);
+      dur = Math.min(defaultDur, 24 - startH);
+    }
     laneGroups[laneIdx].push({ item, startH, dur });
   }
 

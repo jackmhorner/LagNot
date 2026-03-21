@@ -13,7 +13,8 @@ const CATEGORY_META = {
   'meal':        { color: 'green',  label: 'Meal'     },
   'melatonin':   { color: 'purple', label: 'Melatonin'},
   'exercise':    { color: 'teal',   label: 'Exercise' },
-  'caffeine':    { color: 'brown',  label: 'Caffeine' },
+  'caffeine':    { color: 'brown',  label: 'Caffeine OK' },
+  'caffeine-avoid': { color: 'red', label: 'No Caffeine' },
   'hydration':   { color: 'blue',   label: 'Hydration'},
   'info':        { color: 'gray',   label: 'Note'     },
 };

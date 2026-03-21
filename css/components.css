@@ -421,7 +421,8 @@
 .tl-pill--meal        { background: #1f6b35; color: #b8f0cb; }
 .tl-pill--melatonin   { background: #5a3d8a; color: #ddd0ff; }
 .tl-pill--exercise    { background: #1d6b63; color: #b0f0ea; }
-.tl-pill--caffeine    { background: #6b3e1a; color: #ffd0a0; }
+.tl-pill--caffeine        { background: #6b3e1a; color: #ffd0a0; }
+.tl-pill--caffeine-avoid  { background: #7a2510; color: #ffd0c0; }
 .tl-pill--hydration   { background: #1a4d80; color: #b0d8ff; }
 
 /* Milestone notes below grid */

@@ -116,14 +116,17 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
 
   // Sleep shifting
   const sleepShift = getPreDepartureSleepShift(params, dayIndex, DEFAULT_BEDTIME_HOUR, DEFAULT_WAKE_HOUR, departureUTC, origin.tz);
+  let preDayWakeSortKey = makeLocalDate(origin.tz, wc.year, wc.month, wc.day, DEFAULT_WAKE_HOUR, 0);
+  let preDayBedtime     = makeLocalDate(origin.tz, wc.year, wc.month, wc.day, DEFAULT_BEDTIME_HOUR, 0);
   if (sleepShift) {
     const shiftDir = params.direction === 'east' ? 'earlier' : 'later';
     const mins = Math.round(Math.abs((DEFAULT_BEDTIME_HOUR - (sleepShift.bedtime.getHours() + sleepShift.bedtime.getMinutes() / 60))) * 60);
     const wakeWC = wallClock(sleepShift.wakeTime, origin.tz);
-    const wakeSortKey = makeLocalDate(origin.tz, wc.year, wc.month, wc.day, wakeWC.hour, wakeWC.minute);
+    preDayWakeSortKey = makeLocalDate(origin.tz, wc.year, wc.month, wc.day, wakeWC.hour, wakeWC.minute);
+    preDayBedtime = sleepShift.bedtime;
     items.push({
       time: formatTime(sleepShift.wakeTime, origin.tz),
-      sortKey: wakeSortKey,
+      sortKey: preDayWakeSortKey,
       category: 'wake',
       icon: '🌅',
       text: `Wake up ${mins} min ${shiftDir} than usual (${formatTime(sleepShift.wakeTime, origin.tz)}) to begin shifting your body clock`,
@@ -153,18 +156,21 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
   const { sunrise: originSunrise, sunset: originSunset } = getSunTimes(dayDate, origin.lat, origin.lng);
   if (params.direction === 'east') {
     const seekStart = originSunrise || makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 7, 0);
+    const seekEnd   = addHours(seekStart, 2);
     items.push({
       time: formatTime(seekStart, origin.tz),
       sortKey: seekStart,
+      timelineEnd: seekEnd,
       category: 'light-seek',
       icon: '☀️',
-      text: `Get 20–30 min of bright morning light starting at sunrise (${formatTime(seekStart, origin.tz)}) — this shifts your clock earlier (eastward)`,
+      text: `${formatTime(seekStart, origin.tz)}–${formatTime(seekEnd, origin.tz)}: Get bright morning light starting at sunrise — this shifts your clock earlier (eastward)`,
     });
-    // Avoid light 1.5 hours before shifted bedtime
+    // Avoid light 1.5 hours before shifted bedtime, through bedtime
     const avoidLightTime = sleepShift ? addHours(sleepShift.bedtime, -1.5) : makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 21, 0);
     items.push({
       time: formatTime(avoidLightTime, origin.tz),
       sortKey: avoidLightTime,
+      timelineEnd: preDayBedtime,
       category: 'light-avoid',
       icon: '🕶️',
       text: `After ${formatTime(avoidLightTime, origin.tz)}: dim lights, no bright screens — evening light delays your clock and will worsen eastward jet lag`,
@@ -175,6 +181,7 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
     items.push({
       time: formatTime(sunsetSeekStart, origin.tz),
       sortKey: sunsetSeekStart,
+      timelineEnd: sunsetSeekEnd,
       category: 'light-seek',
       icon: '☀️',
       text: `${formatTime(sunsetSeekStart, origin.tz)}–${formatTime(sunsetSeekEnd, origin.tz)}: Get bright evening light around sunset — this delays your clock (helpful for westward travel)`,
@@ -186,11 +193,31 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
     items.push({
       time: formatTime(wakeTimeWest, origin.tz),
       sortKey: westAvoidSortKey,
+      timelineEnd: avoidUntilWest,
       category: 'light-avoid',
       icon: '🕶️',
       text: `Wear sunglasses for the first 2 hours after waking (until ${formatTime(avoidUntilWest, origin.tz)}) — morning light would advance your clock (wrong direction for westward travel)`,
     });
   }
+
+  // Caffeine windows
+  const preCaffeineCutoff = getCaffeineDeadline(preDayBedtime);
+  items.push({
+    time: formatTime(preDayWakeSortKey, origin.tz),
+    sortKey: preDayWakeSortKey,
+    timelineEnd: preCaffeineCutoff,
+    category: 'caffeine',
+    icon: '☕',
+    text: `Caffeine OK ${formatTime(preDayWakeSortKey, origin.tz)}–${formatTime(preCaffeineCutoff, origin.tz)} — fine to use normally today`,
+  });
+  items.push({
+    time: formatTime(preCaffeineCutoff, origin.tz),
+    sortKey: preCaffeineCutoff,
+    timelineEnd: preDayBedtime,
+    category: 'caffeine-avoid',
+    icon: '🚫',
+    text: `No caffeine after ${formatTime(preCaffeineCutoff, origin.tz)} — protect your${sleepShift ? ' shifted' : ''} bedtime; caffeine's 5–6 hour half-life means it will still be active at sleep time`,
+  });
 
   // Alcohol / hydration advice
   items.push({
@@ -359,6 +386,7 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
     items.push({
       time: formatTime(lightRec.seek.start, dest.tz),
       sortKey: lightRec.seek.start,
+      timelineEnd: lightRec.seek.end,
       category: 'light-seek',
       icon: '☀️',
       text: `${formatTime(lightRec.seek.start, dest.tz)}–${formatTime(lightRec.seek.end, dest.tz)}: ${lightRec.seek.label}`,
@@ -367,6 +395,7 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
       items.push({
         time: formatTime(lightRec.avoid.start, dest.tz),
         sortKey: lightRec.avoid.start,
+        timelineEnd: lightRec.avoid.end,
         category: 'light-avoid',
         icon: '🕶️',
         text: `${formatTime(lightRec.avoid.start, dest.tz)}–${formatTime(lightRec.avoid.end, dest.tz)}: ${lightRec.avoid.label}`,
@@ -390,18 +419,28 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
   items.push({
     time: formatTime(exercise.start, dest.tz),
     sortKey: exercise.start,
+    timelineEnd: exercise.end,
     category: 'exercise',
     icon: '🏃',
     text: `${formatTime(exercise.start, dest.tz)}–${formatTime(exercise.end, dest.tz)}: ${exercise.label}`,
   });
 
-  // Caffeine cutoff
+  // Caffeine windows
+  items.push({
+    time: formatTime(wakeSortKey, dest.tz),
+    sortKey: wakeSortKey,
+    timelineEnd: caffeineCutoff,
+    category: 'caffeine',
+    icon: '☕',
+    text: `Caffeine OK ${formatTime(wakeSortKey, dest.tz)}–${formatTime(caffeineCutoff, dest.tz)} — use it to stay alert and push through to local bedtime`,
+  });
   items.push({
     time: formatTime(caffeineCutoff, dest.tz),
     sortKey: caffeineCutoff,
-    category: 'caffeine',
-    icon: '☕',
-    text: `Last caffeine by ${formatTime(caffeineCutoff, dest.tz)} — caffeine's 5–6 hour half-life means anything later will still be in your system at bedtime`,
+    timelineEnd: sleep.bedtime,
+    category: 'caffeine-avoid',
+    icon: '🚫',
+    text: `No caffeine after ${formatTime(caffeineCutoff, dest.tz)} — caffeine's 5–6 hour half-life means it will still be active at bedtime and impair sleep quality`,
   });
 
   // No napping — 5 hours after wake (naturally falls in early-to-mid afternoon)
@@ -440,6 +479,7 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
   items.push({
     time: formatTime(sleep.bedtime, dest.tz),
     sortKey: sleep.bedtime,
+    timelineEnd: sleep.wakeTime,
     category: 'sleep',
     icon: '🌙',
     text: `Target bedtime: ${formatTime(sleep.bedtime, dest.tz)}. Keep the room cool (~65–68°F / 18–20°C) and dark`,
