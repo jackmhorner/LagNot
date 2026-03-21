@@ -121,7 +121,7 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
     items.push({
       time: formatTime(sleepShift.wakeTime, origin.tz),
       sortKey: sleepShift.wakeTime,
-      category: 'sleep',
+      category: 'wake',
       icon: '🌅',
       text: `Wake up ${mins} min ${shiftDir} than usual (${formatTime(sleepShift.wakeTime, origin.tz)}) to begin shifting your body clock`,
     });
