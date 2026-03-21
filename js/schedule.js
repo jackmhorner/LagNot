@@ -258,8 +258,8 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
     items.push({
       time: formatTime(departureUTC, origin.tz),
       sortKey: addHours(departureUTC, 1),
-      category: 'sleep',
-      icon: '👀',
+      category: 'stay-awake',
+      icon: '⚡',
       text: 'Stay awake during the flight — it is daytime at your destination. Sleeping would delay your adjustment',
     });
   }
@@ -295,8 +295,8 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
   items.push({
     time: formatTime(arrivalUTC, dest.tz),
     sortKey: addHours(arrivalUTC, 0.01),
-    category: 'info',
-    icon: '💪',
+    category: 'stay-awake',
+    icon: '⚡',
     text: `Push through to local bedtime if at all possible — do not nap on arrival`,
   });
 
