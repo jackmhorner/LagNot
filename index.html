@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lag Not! — Beat Jet Lag with Science</title>
+  <meta name="description" content="Get a personalized, science-based jet lag reduction plan for any trip. Light exposure, melatonin timing, fasting protocol, sleep shifting, and more.">
+
+  <!-- Open Graph -->
+  <meta property="og:title"       content="Lag Not! — Beat Jet Lag with Science">
+  <meta property="og:description" content="Get a personalized jet lag plan based on circadian science.">
+  <meta property="og:type"        content="website">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1b2d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lag Not!">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/print.css" media="print">
+
+  <!-- SunCalc (must load before ES modules) -->
+  <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
+
+  <!-- Favicon SVG -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🌍</text></svg>">
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="site-header">
+  <a href="/" class="site-logo">Lag Not<span>!</span></a>
+  <button id="help-btn" class="btn btn-ghost" aria-haspopup="dialog" aria-controls="help-dialog">
+    ? How it works
+  </button>
+</header>
+
+<!-- ── Main ───────────────────────────────────────────────────────────────── -->
+<main>
+
+  <!-- ── Form section ── -->
+  <section id="form-section" aria-label="Trip details form">
+    <div class="form-card">
+      <h1>Beat jet lag with science.</h1>
+      <p class="form-tagline">Enter your trip details and get a personalized day-by-day plan.</p>
+
+      <form id="trip-form" novalidate>
+
+        <div class="form-row">
+          <!-- From -->
+          <div class="input-group">
+            <label for="from-input">From</label>
+            <input
+              type="search"
+              id="from-input"
+              placeholder="City or airport code"
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <ul id="from-list" class="airport-dropdown" hidden role="listbox" aria-label="Departure airport suggestions"></ul>
+          </div>
+
+          <!-- To -->
+          <div class="input-group">
+            <label for="to-input">To</label>
+            <input
+              type="search"
+              id="to-input"
+              placeholder="City or airport code"
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <ul id="to-list" class="airport-dropdown" hidden role="listbox" aria-label="Destination airport suggestions"></ul>
+          </div>
+        </div>
+
+        <div class="form-row-dates">
+          <!-- Departure -->
+          <div class="input-group">
+            <label for="dep-datetime">Departure date &amp; time</label>
+            <input
+              type="datetime-local"
+              id="dep-datetime"
+              required
+            >
+          </div>
+
+          <!-- Return (optional) -->
+          <div class="input-group">
+            <label for="ret-datetime">Return date &amp; time <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+            <input
+              type="datetime-local"
+              id="ret-datetime"
+            >
+          </div>
+        </div>
+
+        <p id="form-error" class="form-error" hidden role="alert"></p>
+
+        <button type="submit" class="btn btn-primary">
+          Generate My Plan &rarr;
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ── Loading indicator ── -->
+  <div id="loading" hidden aria-live="polite" aria-label="Generating your plan">
+    <div class="spinner" role="status"></div>
+    <p>Building your personalized plan&hellip;</p>
+  </div>
+
+  <!-- ── Results section ── -->
+  <section id="results-section" hidden aria-label="Your jet lag plan">
+
+    <!-- Summary -->
+    <div id="summary-strip" aria-label="Trip summary"></div>
+
+    <!-- Action buttons -->
+    <div class="results-actions">
+      <button id="reset-btn" class="btn btn-secondary">&#8592; New Trip</button>
+      <button id="print-btn" class="btn btn-ghost">&#128438; Print / Save PDF</button>
+    </div>
+
+    <!-- Mobile tab strip -->
+    <div id="tab-strip-wrapper" aria-label="Day navigation">
+      <div id="tab-strip" role="tablist"></div>
+    </div>
+
+    <!-- Desktop + card area -->
+    <div class="schedule-layout">
+      <nav aria-label="Day list">
+        <ul id="day-sidebar"></ul>
+      </nav>
+      <div id="cards-area" role="tabpanel" aria-live="polite"></div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <p>
+    Not medical advice. Always consult a physician for medical concerns.
+    &bull; Airport data: <a href="https://ourairports.com" target="_blank" rel="noopener">OurAirports</a>
+    &bull; Sun times: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noopener">SunCalc</a>
+    &bull; <a href="https://github.com" target="_blank" rel="noopener">View on GitHub</a>
+  </p>
+</footer>
+
+<!-- ── How It Works Modal ─────────────────────────────────────────────────── -->
+<dialog id="help-dialog" class="modal" aria-labelledby="help-title">
+  <div class="modal-header">
+    <h2 id="help-title">How Lag Not! works</h2>
+    <button class="modal-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body">
+    <p>
+      Lag Not! generates a personalized protocol based on peer-reviewed circadian biology research.
+      It accounts for your direction of travel, timezone difference, and flight timing to give you
+      science-backed recommendations across six key levers:
+    </p>
+
+    <h3>☀️ Light exposure</h3>
+    <p>
+      Light is the most powerful zeitgeber (time-giver) for your circadian clock. The <em>phase response curve</em>
+      for light means that light at the right time advances or delays your clock by up to 2 hours per day.
+      For eastward travel, morning light at the destination helps; for westward, evening light.
+      The app calculates sunrise/sunset at your destination to give you precise windows.
+    </p>
+
+    <h3>💊 Melatonin</h3>
+    <p>
+      Melatonin at <strong>0.5 mg</strong> (physiological dose) taken at the right time shifts your clock.
+      Doses of 5–10 mg (common OTC) are no more effective for clock-shifting and impair sleep quality.
+      For eastward travel, 0.5 mg at destination bedtime for the first few nights is recommended.
+    </p>
+
+    <h3>🍽️ Fasting protocol</h3>
+    <p>
+      A 12–16 hour fast ending at 7 AM destination time resets your peripheral clocks (liver, gut) independently
+      of your brain clock — discovered at Harvard Medical School. Breaking the fast with a protein-rich breakfast
+      at destination local morning is particularly effective.
+    </p>
+
+    <h3>🌙 Sleep shifting</h3>
+    <p>
+      For trips crossing 3+ time zones, shifting bedtime 30–60 minutes per night in the days before departure
+      pre-adapts your clock. The app linearly interpolates your sleep window across the recovery days.
+    </p>
+
+    <h3>🏃 Exercise</h3>
+    <p>
+      Morning exercise at the destination reinforces phase advance (eastward); afternoon exercise is fine for
+      westward. Exercise affects core body temperature, which is tightly coupled to your circadian rhythm.
+    </p>
+
+    <h3>☕ Caffeine</h3>
+    <p>
+      Caffeine's half-life is 5–6 hours. The app sets a cutoff 10 hours before your target bedtime to protect
+      sleep quality. On arrival days, caffeine is recommended to push through to local bedtime.
+    </p>
+
+    <h3>Key research</h3>
+    <ul>
+      <li>Czeisler et al. — light and melatonin phase response curves (NEJM, 1989)</li>
+      <li>Lewy et al. — 0.5 mg melatonin effectiveness (Sleep Medicine Reviews, 2007)</li>
+      <li>Sack et al. — jet lag management guidelines (Sleep, 2007)</li>
+      <li>Fuller et al. — food restriction and circadian resetting (Science, 2008)</li>
+      <li>Eastman &amp; Burgess — pre-travel sleep shifting (Journal of Travel Medicine, 2009)</li>
+    </ul>
+
+    <div class="modal-disclaimer">
+      <strong>Disclaimer:</strong> Lag Not! provides general wellness information based on published research.
+      It is not a substitute for medical advice. Consult a physician before using melatonin or making
+      significant changes to sleep schedules if you have a medical condition.
+    </div>
+  </div>
+</dialog>
+
+<!-- ── App entry point ────────────────────────────────────────────────────── -->
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>

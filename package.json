@@ -1,0 +1,16 @@
+{
+  "name": "lagnot",
+  "version": "1.0.0",
+  "description": "Beat jet lag with a science-based personalized plan",
+  "type": "module",
+  "scripts": {
+    "build-airports": "node scripts/build-airport-data.cjs",
+    "serve": "npx serve ."
+  },
+  "keywords": ["jet-lag", "travel", "circadian", "health"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "geo-tz": "^8.1.6"
+  }
+}
