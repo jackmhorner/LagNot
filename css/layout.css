@@ -63,10 +63,10 @@ main {
 .site-footer {
   background: var(--c-bg-card);
   border-top: 1px solid var(--c-border);
-  padding: var(--sp-6);
+  padding: var(--sp-2) var(--sp-6);
   text-align: center;
   color: var(--c-text-muted);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
 }
 
 .site-footer a {
