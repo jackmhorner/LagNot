@@ -58,6 +58,7 @@ main {
   max-width: 1100px;
   margin: 0 auto;
   padding: var(--sp-6) var(--sp-4);
+  overflow: visible;
 }
 
 .site-footer {
@@ -122,10 +123,8 @@ main {
 }
 
 /* ── Results section ── */
-#results-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-6);
+#results-section > * + * {
+  margin-top: var(--sp-6);
 }
 
 #summary-strip {
@@ -157,6 +156,7 @@ main {
   top: calc(var(--header-h) + var(--sp-4));
   max-height: calc(100vh - var(--header-h) - var(--sp-8));
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 #day-sidebar::-webkit-scrollbar { width: 4px; }
