@@ -278,23 +278,11 @@
   border-radius: var(--r-lg);
   padding: var(--sp-6);
   box-shadow: var(--shadow-sm);
-  /* Hidden by default; JS activates one at a time */
-  display: none;
-}
-
-.day-card.active {
   display: block;
 }
 
-/* On desktop all cards visible via sidebar */
-@media (min-width: 768px) {
-  .day-card {
-    display: block;
-  }
-
-  .day-card + .day-card {
-    margin-top: var(--sp-6);
-  }
+.day-card + .day-card {
+  margin-top: var(--sp-6);
 }
 
 /* ── View toggle ─────────────────────────────────────────────────────────────── */

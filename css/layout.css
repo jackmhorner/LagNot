@@ -183,7 +183,7 @@ main {
   padding-bottom: var(--sp-8);
 }
 
-/* Mobile: hide sidebar, show tabs */
+/* Mobile: hide sidebar and tabs, show all cards */
 @media (max-width: 767px) {
   .schedule-layout > nav {
     display: none;
@@ -194,7 +194,7 @@ main {
   }
 
   #tab-strip-wrapper {
-    display: block;
+    display: none;
   }
 }
 
