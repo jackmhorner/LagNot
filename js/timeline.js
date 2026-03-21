@@ -172,10 +172,13 @@ function buildGrid(day, isToday = false) {
 }
 
 function buildPill(item, startH, dur) {
+  // Display at least 1 hour tall — extend downward, never move the start up
+  const displayDur = Math.max(dur, 1);
+
   const pill = document.createElement('div');
   pill.className = `tl-pill tl-pill--${item.category}`;
   pill.style.top = `${startH * HOUR_H}px`;
-  pill.style.height = `${Math.max(dur * HOUR_H - 3, 18)}px`;
+  pill.style.height = `${displayDur * HOUR_H - 3}px`;
   pill.title = item.text;
 
   const icon = document.createElement('span');
@@ -183,7 +186,7 @@ function buildPill(item, startH, dur) {
   icon.textContent = item.icon || '';
   pill.appendChild(icon);
 
-  if (dur >= 1.5) {
+  if (displayDur >= 1) {
     const lbl = document.createElement('span');
     lbl.className = 'tl-pill-label';
     lbl.textContent = LABEL[item.category] || '';
