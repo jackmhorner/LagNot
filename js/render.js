@@ -175,12 +175,10 @@ export function activateDay(index, sidebarEl, cardsAreaEl) {
   navItems.forEach((el, i) => el.classList.toggle('active', i === index));
   cards.forEach((el, i)    => el.classList.toggle('active', i === index));
 
-  // On desktop, scroll main to the card
+  // On desktop, scroll cards area to the card
   const card = cards[index];
   if (card && window.innerWidth >= 768) {
-    const mainEl = document.querySelector('main');
-    const top = card.offsetTop - 16;
-    mainEl.scrollTo({ top, behavior: 'smooth' });
+    cardsAreaEl.scrollTo({ top: card.offsetTop - 8, behavior: 'smooth' });
   }
 }
 
@@ -193,10 +191,6 @@ export function initScrollSpy(sidebarEl, cardsAreaEl) {
   const navItems = Array.from(sidebarEl.querySelectorAll('.day-nav-item'));
   const cards    = Array.from(cardsAreaEl.querySelectorAll('.day-card'));
   if (!cards.length) return;
-
-  const headerHeight = document.querySelector('.site-header')?.offsetHeight ?? 56;
-
-  const mainEl = document.querySelector('main');
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
@@ -218,8 +212,8 @@ export function initScrollSpy(sidebarEl, cardsAreaEl) {
       }
     });
   }, {
-    root: mainEl,
-    rootMargin: `0px 0px -60% 0px`,
+    root: cardsAreaEl,
+    rootMargin: '0px 0px -60% 0px',
     threshold: 0,
   });
 

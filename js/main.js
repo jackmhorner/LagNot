@@ -149,6 +149,16 @@ function renderSchedule(schedule) {
     activateDay(parseInt(item.dataset.index, 10), sidebarEl, cardsAreaEl);
   });
 
+  // Forward wheel events from sidebar nav to cards area so scrolling
+  // works no matter where the cursor is
+  const sidebarNav = document.querySelector('.schedule-layout > nav');
+  if (sidebarNav) {
+    sidebarNav.addEventListener('wheel', e => {
+      cardsAreaEl.scrollTop += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+  }
+
   // Keep sidebar highlight in sync with scroll position
   initScrollSpy(sidebarEl, cardsAreaEl);
 
