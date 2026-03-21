@@ -45,15 +45,16 @@ const LABEL = {
 
 /**
  * Render all days as timeline cards into cardsAreaEl.
+ * todayIndex: index of the day matching today's calendar date, or -1.
  */
-export function renderTimeline(days, cardsAreaEl) {
+export function renderTimeline(days, cardsAreaEl, todayIndex = -1) {
   cardsAreaEl.innerHTML = '';
   days.forEach((day, i) => {
-    cardsAreaEl.appendChild(buildTimelineCard(day, i));
+    cardsAreaEl.appendChild(buildTimelineCard(day, i, i === todayIndex));
   });
 }
 
-function buildTimelineCard(day, index) {
+function buildTimelineCard(day, index, isToday = false) {
   const card = document.createElement('div');
   card.className = 'day-card tl-card';
   card.id = `day-card-${index}`;
@@ -78,7 +79,7 @@ function buildTimelineCard(day, index) {
   card.appendChild(laneHeader);
 
   // Grid
-  card.appendChild(buildGrid(day));
+  card.appendChild(buildGrid(day, isToday));
 
   // Milestone markers (departure / arrival)
   const milestones = day.items.filter(i => i.category === 'milestone' && i.sortKey);
@@ -97,7 +98,7 @@ function buildTimelineCard(day, index) {
   return card;
 }
 
-function buildGrid(day) {
+function buildGrid(day, isToday = false) {
   const wrapper = document.createElement('div');
   wrapper.className = 'tl-wrapper';
 
@@ -144,6 +145,15 @@ function buildGrid(day) {
     });
     lanesEl.appendChild(laneEl);
   });
+
+  // Now-line: red horizontal rule at the current time (today only)
+  if (isToday) {
+    const nowH = localHour(new Date(), day.tz);
+    const nowLine = document.createElement('div');
+    nowLine.className = 'tl-now-line';
+    nowLine.style.top = `${nowH * HOUR_H}px`;
+    lanesEl.appendChild(nowLine);
+  }
 
   wrapper.appendChild(lanesEl);
   return wrapper;

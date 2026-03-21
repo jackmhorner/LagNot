@@ -15,6 +15,7 @@ import {
 } from './circadian.js';
 
 import { formatTime, formatDate, formatShortDate, addHours, addDays, makeLocalDate, wallClock, tzOffsetHours } from './tz.js';
+import { getSunTimes } from './suncalc-utils.js';
 
 // Default sleep/wake preferences (user can adjust in a future version)
 const DEFAULT_BEDTIME_HOUR = 22;  // 10 PM
@@ -149,15 +150,17 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
   }
 
   // Light exposure
+  const { sunrise: originSunrise, sunset: originSunset } = getSunTimes(dayDate, origin.lat, origin.lng);
   if (params.direction === 'east') {
+    const seekStart = originSunrise || makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 7, 0);
     items.push({
-      time: '8:00 AM',
-      sortKey: makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 8, 0),
+      time: formatTime(seekStart, origin.tz),
+      sortKey: seekStart,
       category: 'light-seek',
       icon: '☀️',
-      text: 'Get 20–30 min of bright morning light as early as possible — this shifts your clock earlier (eastward)',
+      text: `Get 20–30 min of bright morning light starting at sunrise (${formatTime(seekStart, origin.tz)}) — this shifts your clock earlier (eastward)`,
     });
-    // Avoid light 1.5 hours before shifted bedtime (not hardcoded to 9 PM)
+    // Avoid light 1.5 hours before shifted bedtime
     const avoidLightTime = sleepShift ? addHours(sleepShift.bedtime, -1.5) : makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 21, 0);
     items.push({
       time: formatTime(avoidLightTime, origin.tz),
@@ -167,19 +170,25 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
       text: `After ${formatTime(avoidLightTime, origin.tz)}: dim lights, no bright screens — evening light delays your clock and will worsen eastward jet lag`,
     });
   } else {
+    const sunsetSeekStart = originSunset ? addHours(originSunset, -1) : makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 18, 0);
+    const sunsetSeekEnd   = originSunset ? addHours(originSunset, +1) : makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 20, 0);
     items.push({
-      time: '7:00 PM',
-      sortKey: makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 19, 0),
+      time: formatTime(sunsetSeekStart, origin.tz),
+      sortKey: sunsetSeekStart,
       category: 'light-seek',
       icon: '☀️',
-      text: 'Get bright evening light — this delays your clock (helpful for westward travel)',
+      text: `${formatTime(sunsetSeekStart, origin.tz)}–${formatTime(sunsetSeekEnd, origin.tz)}: Get bright evening light around sunset — this delays your clock (helpful for westward travel)`,
     });
+    const wakeTimeWest = sleepShift ? sleepShift.wakeTime : makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 8, 0);
+    const wakeWCWest = wallClock(wakeTimeWest, origin.tz);
+    const westAvoidSortKey = makeLocalDate(origin.tz, wc.year, wc.month, wc.day, wakeWCWest.hour, wakeWCWest.minute);
+    const avoidUntilWest = addHours(wakeTimeWest, 2);
     items.push({
-      time: '8:00 AM',
-      sortKey: makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 8, 0),
+      time: formatTime(wakeTimeWest, origin.tz),
+      sortKey: westAvoidSortKey,
       category: 'light-avoid',
       icon: '🕶️',
-      text: 'Wear sunglasses for the first 2 hours after waking — morning light would advance your clock (wrong direction for westward travel)',
+      text: `Wear sunglasses for the first 2 hours after waking (until ${formatTime(avoidUntilWest, origin.tz)}) — morning light would advance your clock (wrong direction for westward travel)`,
     });
   }
 
@@ -323,10 +332,10 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
   const lightRec = getLightRecommendation(dayDateUTC, dest, params.direction, bodyClock6AM);
 
   // Melatonin
-  const melatoninTime = getMelatoninRecommendation(params, dayIndex, dayDateUTC, dest);
+  const melatoninTime = getMelatoninRecommendation(params, dayIndex, dayDateUTC, dest, DEFAULT_BEDTIME_HOUR, DEFAULT_WAKE_HOUR);
 
-  // Exercise
-  const exercise = getExerciseWindow(dayDateUTC, dest, params.direction);
+  // Exercise (pass bedtime so westward timing is relative to target sleep)
+  const exercise = getExerciseWindow(dayDateUTC, dest, params.direction, sleep.bedtime);
 
   const isFullyAdapted = dayIndex >= params.daysToAdapt;
   const prefix = isHomeRecovery ? 'Home Day' : `Day ${dayIndex}`;
@@ -365,15 +374,15 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
     }
   }
 
-  // Breakfast
-  const breakfast = makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 7, 0);
+  // Breakfast — 30 min after wake time
+  const breakfast = addHours(wakeSortKey, 0.5);
   items.push({
     time: formatTime(breakfast, dest.tz),
     sortKey: breakfast,
     category: 'meal',
     icon: '🍳',
     text: dayIndex === 1
-      ? 'Eat breakfast at 7 AM local time even if not hungry — this is the most important meal for resetting your body clock. High protein.'
+      ? `Eat breakfast at ${formatTime(breakfast, dest.tz)} even if not hungry — this is the most important meal for resetting your body clock. High protein.`
       : 'Eat meals at regular local times — consistency reinforces your new circadian rhythm',
   });
 
@@ -395,11 +404,11 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
     text: `Last caffeine by ${formatTime(caffeineCutoff, dest.tz)} — caffeine's 5–6 hour half-life means anything later will still be in your system at bedtime`,
   });
 
-  // No napping (or short nap only)
-  const noonLocal = makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 13, 0);
+  // No napping — 5 hours after wake (naturally falls in early-to-mid afternoon)
+  const napReminderTime = addHours(wakeSortKey, 5);
   items.push({
-    time: '1:00 PM',
-    sortKey: noonLocal,
+    time: formatTime(napReminderTime, dest.tz),
+    sortKey: napReminderTime,
     category: 'stay-awake',
     icon: '⚡',
     text: dayIndex <= 2

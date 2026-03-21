@@ -1,5 +1,7 @@
 // DOM rendering — turns the schedule model into HTML
 
+import { wallClock } from './tz.js';
+
 const MILESTONE_CATEGORIES = new Set(['milestone']);
 
 const CATEGORY_META = {
@@ -83,16 +85,28 @@ function shortLabel(day) {
 
 /**
  * Render all day cards into the cards area.
+ * todayIndex: index of the day matching today's calendar date, or -1.
  */
-export function renderDayCards(days, cardsAreaEl) {
+export function renderDayCards(days, cardsAreaEl, todayIndex = -1) {
   cardsAreaEl.innerHTML = '';
   days.forEach((day, i) => {
-    const card = renderDayCard(day, i);
+    const card = renderDayCard(day, i, i === todayIndex);
     cardsAreaEl.appendChild(card);
   });
 }
 
-function renderDayCard(day, index) {
+function findCurrentItemIndex(items) {
+  const now = new Date();
+  let current = -1;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].sortKey instanceof Date && items[i].sortKey <= now) {
+      current = i;
+    }
+  }
+  return current;
+}
+
+function renderDayCard(day, index, isToday = false) {
   const card = document.createElement('div');
   card.className = `day-card phase-${day.phase}`;
   card.dataset.index = index;
@@ -109,9 +123,11 @@ function renderDayCard(day, index) {
     return card;
   }
 
+  const currentItemIdx = isToday ? findCurrentItemIndex(day.items) : -1;
+
   const list = document.createElement('ul');
   list.className = 'schedule-list';
-  day.items.forEach(item => list.appendChild(renderScheduleItem(item)));
+  day.items.forEach((item, i) => list.appendChild(renderScheduleItem(item, i === currentItemIdx)));
   card.appendChild(list);
 
   return card;
@@ -128,13 +144,13 @@ function renderMilestone(item) {
   return li;
 }
 
-function renderScheduleItem(item) {
+function renderScheduleItem(item, isCurrent = false) {
   if (MILESTONE_CATEGORIES.has(item.category)) {
     return renderMilestone(item);
   }
 
   const li = document.createElement('li');
-  li.className = `schedule-item cat-${item.category}`;
+  li.className = `schedule-item cat-${item.category}${isCurrent ? ' current-step' : ''}`;
 
   const meta = CATEGORY_META[item.category] || CATEGORY_META.info;
 

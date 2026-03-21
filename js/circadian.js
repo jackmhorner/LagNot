@@ -264,21 +264,21 @@ export function getLightRecommendation(dayDateUTC, dest, direction, bodyClock6AM
  * Eastward: take at destination 10 PM for the first ceil(absShift/2) days
  * Westward: only for very large shifts (>8 zones), take in the morning
  */
-export function getMelatoninRecommendation(params, dayIndex, dayDateUTC, dest) {
+export function getMelatoninRecommendation(params, dayIndex, dayDateUTC, dest, destBedtimeHour = 22, destWakeHour = 7) {
   if (params.trivial) return null;
 
   if (params.direction === 'east') {
     const nDays = Math.ceil(params.absShift / 2);
     if (dayIndex > nDays) return null;
     const wc = wallClock(dayDateUTC, dest.tz);
-    return makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 22, 0); // 10 PM
+    return makeLocalDate(dest.tz, wc.year, wc.month, wc.day, Math.floor(destBedtimeHour), Math.round((destBedtimeHour % 1) * 60));
   }
 
   if (params.direction === 'west' && params.absShift > 8) {
     const nDays = Math.ceil(params.absShift / 2);
     if (dayIndex > nDays) return null;
     const wc = wallClock(dayDateUTC, dest.tz);
-    return makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 8, 0); // 8 AM
+    return makeLocalDate(dest.tz, wc.year, wc.month, wc.day, Math.floor(destWakeHour), Math.round((destWakeHour % 1) * 60));
   }
 
   return null;
@@ -296,7 +296,7 @@ export function getCaffeineDeadline(bedtimeUTC) {
  * Exercise window recommendation.
  * Returns { start: Date, end: Date, label: string }.
  */
-export function getExerciseWindow(dayDateUTC, dest, direction) {
+export function getExerciseWindow(dayDateUTC, dest, direction, sleepBedtime = null) {
   const { sunrise } = getSunTimes(dayDateUTC, dest.lat, dest.lng);
   const wc = wallClock(dayDateUTC, dest.tz);
 
@@ -306,14 +306,16 @@ export function getExerciseWindow(dayDateUTC, dest, direction) {
     return {
       start,
       end: addHours(start, 2),
-      label: 'Morning exercise (8–11 AM) reinforces phase advance',
+      label: 'Morning exercise reinforces phase advance',
     };
   } else {
-    // Late afternoon/evening OK for westward
+    // Late afternoon relative to target bedtime (4–2 hours before bed) → phase delay
+    const start = sleepBedtime ? addHours(sleepBedtime, -4) : makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 17, 0);
+    const end   = sleepBedtime ? addHours(sleepBedtime, -2) : makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 19, 0);
     return {
-      start: makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 17, 0),
-      end:   makeLocalDate(dest.tz, wc.year, wc.month, wc.day, 19, 0),
-      label: 'Afternoon or morning exercise helps delay your clock',
+      start,
+      end,
+      label: 'Afternoon exercise helps delay your clock',
     };
   }
 }

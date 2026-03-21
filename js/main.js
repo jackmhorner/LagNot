@@ -5,7 +5,7 @@ import { generateSchedule } from './schedule.js';
 import { renderSummary, renderDayNav, renderDayCards, activateDay, initScrollSpy } from './render.js';
 import { renderTimeline } from './timeline.js';
 import { initAirportInput, initModal, initDayTabs, showEl, hideEl, encodeHash, decodeHash, triggerPrint } from './ui.js';
-import { makeLocalDate } from './tz.js';
+import { makeLocalDate, wallClock } from './tz.js';
 
 // ─── DOM references ───────────────────────────────────────────────────────────
 const fromInput     = document.getElementById('from-input');
@@ -132,6 +132,20 @@ form.addEventListener('submit', async e => {
 let currentDays = [];
 let currentView = 'list';
 let currentDayIndex = 0;
+let todayIndex = -1;
+
+function findTodayIndex(days) {
+  const now = new Date();
+  for (let i = 0; i < days.length; i++) {
+    const day = days[i];
+    const dayWC = wallClock(day.date, day.tz);
+    const nowWC = wallClock(now, day.tz);
+    if (dayWC.year === nowWC.year && dayWC.month === nowWC.month && dayWC.day === nowWC.day) {
+      return i;
+    }
+  }
+  return -1;
+}
 
 function applyView(view) {
   currentView = view;
@@ -139,18 +153,19 @@ function applyView(view) {
     btn.classList.toggle('active', btn.dataset.view === view);
   });
   if (view === 'list') {
-    renderDayCards(currentDays, cardsAreaEl);
+    renderDayCards(currentDays, cardsAreaEl, todayIndex);
   } else {
-    renderTimeline(currentDays, cardsAreaEl);
+    renderTimeline(currentDays, cardsAreaEl, todayIndex);
   }
   cardsAreaEl.scrollTop = 0;
   activateDay(currentDayIndex, sidebarEl, cardsAreaEl);
-  initScrollSpy(sidebarEl, cardsAreaEl);
+  initScrollSpy(sidebarEl, cardsAreaEl, idx => { currentDayIndex = idx; });
 }
 
 function renderSchedule(schedule) {
   currentDays = schedule.days;
-  currentDayIndex = 0;
+  todayIndex = findTodayIndex(currentDays);
+  currentDayIndex = todayIndex >= 0 ? todayIndex : 0;
 
   renderSummary(schedule.summary, summaryEl);
   renderDayNav(schedule.days, sidebarEl, tabStripEl);

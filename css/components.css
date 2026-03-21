@@ -439,6 +439,39 @@
   color: var(--c-text-muted);
 }
 
+/* ── Now-line (current time indicator on timeline) ── */
+.tl-now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e0443a;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.tl-now-line::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e0443a;
+}
+
+.tl-now-line::after {
+  content: 'Now';
+  position: absolute;
+  right: 4px;
+  top: -9px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: #e0443a;
+  line-height: 1;
+}
+
 /* Mobile: stack timeline cards same as list cards */
 @media (max-width: 767px) {
   .tl-card + .tl-card {
@@ -505,6 +538,12 @@
 
 .schedule-item:hover {
   background: var(--c-bg-hover);
+}
+
+.schedule-item.current-step {
+  background: rgba(245, 166, 35, 0.08);
+  border-left: 3px solid var(--c-accent);
+  padding-left: calc(var(--sp-3) - 3px);
 }
 
 .item-time {
