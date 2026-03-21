@@ -126,6 +126,13 @@ export function initAirportInput(input, listEl, onSelect) {
   // Return a method to get the currently selected airport
   return {
     getSelected: () => selectedAirport,
+    setSelected: (airport) => {
+      selectedAirport = airport;
+      if (airport) {
+        input.value = `${airport.iata} — ${airport.city} (${airport.country})`;
+        input.dataset.iata = airport.iata;
+      }
+    },
     clear: () => { input.value = ''; selectedAirport = null; delete input.dataset.iata; closeDropdown(); },
   };
 }

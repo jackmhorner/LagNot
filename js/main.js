@@ -201,16 +201,12 @@ async function init() {
     const { getAirportByIATA } = await import('./airports.js');
     const fromAirport = getAirportByIATA(state.from);
     const toAirport   = getAirportByIATA(state.to);
-    if (fromAirport) { fromInput.value = `${fromAirport.iata} — ${fromAirport.city} (${fromAirport.country})`; fromInput.dataset.iata = fromAirport.iata; fromCtrl._setSelected && fromCtrl._setSelected(fromAirport); }
-    if (toAirport)   { toInput.value   = `${toAirport.iata}   — ${toAirport.city} (${toAirport.country})`;   toInput.dataset.iata   = toAirport.iata;   toCtrl._setSelected   && toCtrl._setSelected(toAirport);   }
+    if (fromAirport) fromCtrl.setSelected(fromAirport);
+    if (toAirport)   toCtrl.setSelected(toAirport);
     if (state.dep) depDateTime.value = state.dep;
     if (state.ret) retDateTime.value = state.ret;
   }
 }
 
-// Expose getSelected on the controls so hash restore can set them
-// (patching the controllers after the fact)
-fromCtrl._setSelected = airport => { fromCtrl._selected = airport; fromCtrl.getSelected = () => airport; };
-toCtrl._setSelected   = airport => { toCtrl._selected   = airport; toCtrl.getSelected   = () => airport; };
 
 init().catch(console.error);
