@@ -388,6 +388,23 @@
   flex: 1;
 }
 
+/* When an all-day strip is present, shrink regular pills to not cover it */
+.tl-lane.has-allday .tl-pill:not(.tl-pill--allday) {
+  right: 20px;
+}
+
+/* All-day pill: narrow strip pinned to the right edge, full lane height */
+.tl-pill--allday {
+  position: absolute;
+  top: 0;
+  left: auto !important;
+  right: 4px;
+  width: 12px;
+  border-radius: var(--r-sm);
+  padding: 4px 0;
+  overflow: hidden;
+}
+
 /* Pills */
 .tl-pill {
   position: absolute;

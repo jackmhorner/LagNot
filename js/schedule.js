@@ -225,6 +225,7 @@ function buildPreDepartureDay(dayIndex, params, origin, dest, departureUTC) {
     sortKey: makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 0, 1),
     category: 'hydration',
     icon: '💧',
+    allDay: true,
     text: 'Stay well-hydrated; limit alcohol — dehydration and alcohol worsen jet lag',
   });
 
@@ -317,6 +318,7 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
     sortKey: addHours(departureUTC, 2),
     category: 'hydration',
     icon: '💧',
+    allDay: true,
     text: 'Drink ~250 mL (8 oz) of water every hour. Avoid alcohol entirely — cabin air is very dry and alcohol significantly worsens jet lag and disrupts sleep quality',
   });
 

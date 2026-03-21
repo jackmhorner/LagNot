@@ -130,31 +130,47 @@ function buildGrid(day, isToday = false) {
     lanesEl.appendChild(rule);
   }
 
-  // Build pills grouped by lane
-  const laneGroups = [[], [], []];
+  // Build pills grouped by lane — separate all-day from timed items
+  const laneGroups = [
+    { timed: [], allDay: [] },
+    { timed: [], allDay: [] },
+    { timed: [], allDay: [] },
+  ];
   for (const item of day.items) {
     const laneIdx = LANE[item.category];
     if (laneIdx === undefined || !item.sortKey) continue;
+
+    if (item.allDay) {
+      laneGroups[laneIdx].allDay.push(item);
+      continue;
+    }
+
     const startH = localHour(item.sortKey, day.tz);
     let dur;
     if (item.timelineEnd) {
-      // Use explicit end time — clip at midnight for single-day grid
       const endH = localHour(item.timelineEnd, day.tz);
-      const adjustedEndH = endH < startH ? endH + 24 : endH; // handle cross-midnight
+      const adjustedEndH = endH < startH ? endH + 24 : endH;
       dur = Math.min(adjustedEndH - startH, 24 - startH);
     } else {
       const defaultDur = item.durationHours !== undefined ? item.durationHours : (DURATION[item.category] || 1);
       dur = Math.min(defaultDur, 24 - startH);
     }
-    laneGroups[laneIdx].push({ item, startH, dur });
+    laneGroups[laneIdx].timed.push({ item, startH, dur });
   }
 
-  laneGroups.forEach((group, laneIdx) => {
+  laneGroups.forEach(({ timed, allDay }, laneIdx) => {
     const laneEl = document.createElement('div');
     laneEl.className = `tl-lane tl-lane-${laneIdx}`;
-    group.forEach(({ item, startH, dur }) => {
+    const hasAllDay = allDay.length > 0;
+    if (hasAllDay) laneEl.classList.add('has-allday');
+
+    timed.forEach(({ item, startH, dur }) => {
       laneEl.appendChild(buildPill(item, startH, dur));
     });
+    allDay.forEach(item => {
+      laneEl.appendChild(buildAllDayPill(item));
+    });
+
     lanesEl.appendChild(laneEl);
   });
 
@@ -192,6 +208,20 @@ function buildPill(item, startH, dur) {
     lbl.textContent = LABEL[item.category] || '';
     pill.appendChild(lbl);
   }
+
+  return pill;
+}
+
+function buildAllDayPill(item) {
+  const pill = document.createElement('div');
+  pill.className = `tl-pill tl-pill--${item.category} tl-pill--allday`;
+  pill.style.height = `${24 * HOUR_H}px`;
+  pill.title = item.text;
+
+  const icon = document.createElement('span');
+  icon.className = 'tl-pill-icon';
+  icon.textContent = item.icon || '';
+  pill.appendChild(icon);
 
   return pill;
 }
