@@ -4,6 +4,7 @@ const HOUR_H = 44; // px per hour
 
 // Which lane (column) each category occupies
 const LANE = {
+  'wake':        0,
   'sleep':       0,
   'light-seek':  1,
   'light-avoid': 1,
@@ -16,6 +17,7 @@ const LANE = {
 
 // Default duration in hours for each category
 const DURATION = {
+  'wake':        0.5,
   'sleep':       7.5,
   'light-seek':  2,
   'light-avoid': 3,
@@ -27,6 +29,7 @@ const DURATION = {
 };
 
 const LABEL = {
+  'wake':        'Wake Up',
   'sleep':       'Sleep',
   'light-seek':  'Seek light',
   'light-avoid': 'Avoid light',

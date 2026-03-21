@@ -4,6 +4,7 @@ const MILESTONE_CATEGORIES = new Set(['milestone']);
 
 const CATEGORY_META = {
   'sleep':       { color: 'navy',   label: 'Sleep'    },
+  'wake':        { color: 'navy',   label: 'Wake Up'  },
   'light-seek':  { color: 'amber',  label: 'Light ☀️' },
   'light-avoid': { color: 'red',    label: 'No Light' },
   'meal':        { color: 'green',  label: 'Meal'     },

@@ -336,7 +336,7 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
   items.push({
     time: formatTime(sleep.wakeTime, dest.tz),
     sortKey: wakeSortKey,
-    category: 'sleep',
+    category: 'wake',
     icon: '🌅',
     text: `Wake up: ${formatTime(sleep.wakeTime, dest.tz)}${isFullyAdapted ? ' — you are now fully adapted!' : ' (shifting toward local schedule)'}`,
   });

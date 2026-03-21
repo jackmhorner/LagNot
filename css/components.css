@@ -425,6 +425,7 @@
   padding: 0 4px;
 }
 
+.tl-pill--wake        { background: #1a3a5c; color: #b8cfe8; }
 .tl-pill--sleep       { background: #1a3a5c; color: #b8cfe8; }
 .tl-pill--light-seek  { background: #b57a10; color: #fff8e8; }
 .tl-pill--light-avoid { background: #7a2510; color: #ffd0c0; }
