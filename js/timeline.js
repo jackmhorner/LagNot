@@ -37,17 +37,77 @@ const LABEL = {
 };
 
 /**
+ * Compute the raw start/end hours (fractional, 0–∞) for an item within its day.
+ * Returns null if the item should be skipped.
+ */
+function itemHours(item, tz) {
+  if (!item.sortKey || SKIP_IN_TIMELINE.has(item.category)) return null;
+  if (item.allDay) return { startH: 0, endH: 24 };
+
+  const startH = localHour(item.sortKey, tz);
+  let endH;
+  if (item.timelineEnd) {
+    const rawEnd = localHour(item.timelineEnd, tz);
+    // Cross-midnight: rawEnd will be smaller than startH
+    endH = rawEnd < startH ? rawEnd + 24 : rawEnd;
+  } else {
+    const dur = item.durationHours !== undefined
+      ? item.durationHours
+      : (DURATION[item.category] || 1);
+    endH = startH + dur;
+  }
+  return { startH, endH };
+}
+
+/**
  * Render all days as timeline cards into cardsAreaEl.
  * todayIndex: index of the day matching today's calendar date, or -1.
+ *
+ * Cross-midnight items are split: clipped at midnight on day i, then a
+ * continuation pill is prepended (from midnight) on day i+1.
  */
 export function renderTimeline(days, cardsAreaEl, todayIndex = -1) {
   cardsAreaEl.innerHTML = '';
+
+  // continuations[i] = array of { item, startH, endH } to inject into day i
+  const continuations = days.map(() => []);
+
   days.forEach((day, i) => {
-    cardsAreaEl.appendChild(buildTimelineCard(day, i, i === todayIndex));
+    if (i + 1 >= days.length) return;
+    const nextDay = days[i + 1];
+
+    for (const item of day.items) {
+      const hours = itemHours(item, day.tz);
+      if (!hours || item.allDay) continue;
+
+      const { startH, endH } = hours;
+      if (endH > 24) {
+        // Compute the end hour in the NEXT day's timezone so it aligns with
+        // that grid (timezones may differ between origin and destination).
+        let contEndH;
+        if (item.timelineEnd) {
+          contEndH = localHour(item.timelineEnd, nextDay.tz);
+          // If contEndH is 0 it literally means midnight — treat as 24 so the
+          // pill spans the full continuation (shouldn't normally happen).
+          if (contEndH === 0) contEndH = 24;
+        } else {
+          contEndH = endH - 24;
+        }
+        continuations[i + 1].push({
+          item,
+          startH: 0,
+          endH: Math.max(Math.min(contEndH, 24), 1),
+        });
+      }
+    }
+  });
+
+  days.forEach((day, i) => {
+    cardsAreaEl.appendChild(buildTimelineCard(day, i, i === todayIndex, continuations[i]));
   });
 }
 
-function buildTimelineCard(day, index, isToday = false) {
+function buildTimelineCard(day, index, isToday = false, continuations = []) {
   const card = document.createElement('div');
   card.className = 'day-card tl-card';
   card.id = `day-card-${index}`;
@@ -57,12 +117,50 @@ function buildTimelineCard(day, index, isToday = false) {
   header.innerHTML = `<span>${day.label}</span>`;
   card.appendChild(header);
 
-  card.appendChild(buildGrid(day, isToday));
+  card.appendChild(buildGrid(day, isToday, continuations));
 
   return card;
 }
 
-function buildGrid(day, isToday = false) {
+function buildGrid(day, isToday = false, continuations = []) {
+  // ── 1. Collect and measure items (before touching the DOM) ─────────────────
+
+  const timedItems = [];
+
+  for (const item of day.items) {
+    const hours = itemHours(item, day.tz);
+    if (!hours) continue;
+
+    const { startH } = hours;
+    // Clip endH to midnight; cross-midnight remainder lives on the next day
+    const endH = Math.min(hours.endH, 24);
+    // 1-hour minimum display height — extend downward, capped at midnight
+    const displayEndH = Math.min(Math.max(endH, startH + 1), 24);
+    timedItems.push({ item, startH, endH: displayEndH });
+  }
+
+  // Inject continuation pills from the previous day
+  for (const cont of continuations) {
+    timedItems.push(cont);
+  }
+
+  // Sort by start time; longer events first on ties (better column packing)
+  timedItems.sort((a, b) =>
+    a.startH - b.startH || (b.endH - b.startH) - (a.endH - a.startH)
+  );
+
+  // Greedy column assignment
+  const colEnds = [];
+  for (const ti of timedItems) {
+    let col = colEnds.findIndex(e => e <= ti.startH);
+    if (col === -1) { col = colEnds.length; colEnds.push(ti.endH); }
+    else            { colEnds[col] = ti.endH; }
+    ti.col = col;
+  }
+  const numCols = Math.max(colEnds.length, 1);
+
+  // ── 2. Build DOM ───────────────────────────────────────────────────────────
+
   const wrapper = document.createElement('div');
   wrapper.className = 'tl-wrapper';
 
@@ -78,58 +176,11 @@ function buildGrid(day, isToday = false) {
   }
   wrapper.appendChild(timeCol);
 
-  // Collect all timed items — all-day items span the full 24 hours
-  const timedItems = [];
-
-  for (const item of day.items) {
-    if (!item.sortKey || SKIP_IN_TIMELINE.has(item.category)) continue;
-
-    if (item.allDay) {
-      timedItems.push({ item, startH: 0, endH: 24 });
-      continue;
-    }
-
-    const startH = localHour(item.sortKey, day.tz);
-    let endH;
-    if (item.timelineEnd) {
-      const rawEnd = localHour(item.timelineEnd, day.tz);
-      const adjusted = rawEnd < startH ? rawEnd + 24 : rawEnd; // cross-midnight
-      endH = Math.min(adjusted, 24);
-    } else {
-      const defaultDur = item.durationHours !== undefined
-        ? item.durationHours
-        : (DURATION[item.category] || 1);
-      endH = Math.min(startH + defaultDur, 24);
-    }
-    // Enforce 1-hour minimum visual height — extend downward, never earlier
-    const displayEndH = Math.max(endH, startH + 1);
-    timedItems.push({ item, startH, endH: displayEndH });
-  }
-
-  // Sort by start time; break ties by longer duration first (better packing)
-  timedItems.sort((a, b) =>
-    a.startH - b.startH || (b.endH - b.startH) - (a.endH - a.startH)
-  );
-
-  // Greedy column assignment: each item goes in the first column where it fits
-  const colEnds = []; // colEnds[i] = earliest time column i is free again
-  for (const ti of timedItems) {
-    let col = colEnds.findIndex(e => e <= ti.startH);
-    if (col === -1) {
-      col = colEnds.length;
-      colEnds.push(ti.endH);
-    } else {
-      colEnds[col] = ti.endH;
-    }
-    ti.col = col;
-  }
-  const numCols = Math.max(colEnds.length, 1);
-
-  // Right area: pill columns + optional all-day strip side by side
+  // Right area
   const rightArea = document.createElement('div');
   rightArea.className = 'tl-right-area';
 
-  // Pill area (the main grid with timed pills)
+  // Pill area (always exactly 24 h tall)
   const pillArea = document.createElement('div');
   pillArea.className = 'tl-pill-area';
   pillArea.style.height = `${24 * HOUR_H}px`;
