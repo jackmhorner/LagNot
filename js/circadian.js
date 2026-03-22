@@ -325,14 +325,17 @@ export function getExerciseWindow(dayDateUTC, dest, direction, sleepBedtime = nu
  * On day 0 (departure), body clock 6 AM = 6 AM origin time.
  * By day daysToAdapt, it has shifted to 6 AM destination time.
  */
-export function getBodyClock6AM(dayIndex, params, origin, dest, departureDateUTC) {
-  // Origin 6 AM in UTC
-  const originWC = wallClock(departureDateUTC, origin.tz);
-  const origin6AM = makeLocalDate(origin.tz, originWC.year, originWC.month, originWC.day, 6, 0);
+export function getBodyClock6AM(dayIndex, params, origin, dest, dayDateUTC) {
+  // Use the destination's calendar date as the common anchor so both 6 AM
+  // timestamps refer to the same logical day (avoids cross-midnight date skew).
+  const wc = wallClock(dayDateUTC, dest.tz);
 
-  // Each day the body clock shifts by tzDiff/daysToAdapt hours
-  const shiftPerDay = params.tzDiff / params.daysToAdapt;
-  const totalShift  = shiftPerDay * Math.min(dayIndex, params.daysToAdapt);
+  // 6 AM on this day in origin local time (body clock starting point)
+  const origin6AM = makeLocalDate(origin.tz, wc.year, wc.month, wc.day, 6, 0);
+  // 6 AM on this day in destination local time (body clock end target)
+  const dest6AM   = makeLocalDate(dest.tz,    wc.year, wc.month, wc.day, 6, 0);
 
-  return addHours(origin6AM, totalShift);
+  // Linearly interpolate: day 0 → origin 6 AM, day daysToAdapt → dest 6 AM
+  const t = Math.min(dayIndex, params.daysToAdapt) / params.daysToAdapt;
+  return new Date(origin6AM.getTime() + (dest6AM - origin6AM) * t);
 }

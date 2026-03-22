@@ -79,7 +79,7 @@ export function generateSchedule(origin, dest, departureUTC, arrivalUTC, returnU
 
   for (let di = 1; di <= maxRecoveryDays; di++) {
     const dayDate = addDays(arrivalUTC, di - 1);
-    days.push(buildRecoveryDay(di, params, dest, dayDate, originBedtimeUTC, returnUTC));
+    days.push(buildRecoveryDay(di, params, dest, dayDate, originBedtimeUTC, returnUTC, false, origin.tz));
   }
 
   // ── Return trip days (if provided) ────────────────────────────────────────
@@ -95,7 +95,7 @@ export function generateSchedule(origin, dest, departureUTC, arrivalUTC, returnU
       wallClock(returnUTC, dest.tz).month, wallClock(returnUTC, dest.tz).day, DEFAULT_BEDTIME_HOUR, 0);
     for (let di = 1; di <= homeRecoveryDays; di++) {
       const dayDate = addDays(returnArrivalUTC, di - 1);
-      days.push(buildRecoveryDay(di, returnParams, origin, dayDate, destBedtimeUTC, null, true));
+      days.push(buildRecoveryDay(di, returnParams, origin, dayDate, destBedtimeUTC, null, true, dest.tz));
     }
   }
 
@@ -354,7 +354,7 @@ function buildFlightDay(params, origin, dest, departureUTC, arrivalUTC, isReturn
   return makeDay({ label, date: departureUTC, phase: 'flight', items, tz: origin.tz });
 }
 
-function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, returnUTC = null, isHomeRecovery = false) {
+function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, returnUTC = null, isHomeRecovery = false, originTz = null) {
   const items = [];
 
   // Compute sleep window
@@ -368,7 +368,7 @@ function buildRecoveryDay(dayIndex, params, dest, dayDateUTC, originBedtimeUTC, 
   const caffeineCutoff = getCaffeineDeadline(sleep.bedtime);
 
   // Light recommendation
-  const bodyClock6AM = getBodyClock6AM(dayIndex, params, { tz: originBedtimeUTC ? 'UTC' : dest.tz }, dest, dayDateUTC);
+  const bodyClock6AM = getBodyClock6AM(dayIndex, params, { tz: originTz ?? dest.tz }, dest, dayDateUTC);
   const lightRec = getLightRecommendation(dayDateUTC, dest, params.direction, bodyClock6AM);
 
   // Melatonin

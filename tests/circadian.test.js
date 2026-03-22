@@ -433,20 +433,24 @@ describe('getBodyClock6AM', () => {
     assert.equal(wc.hour, 6);
   });
 
-  it('on final day: body clock 6AM has shifted by full tzDiff from day 0', () => {
-    const bc0 = getBodyClock6AM(0,                 params, JFK, LHR, departure);
-    const bcN = getBodyClock6AM(params.daysToAdapt, params, JFK, LHR, departure);
-    const totalShift = hoursBetween(bc0, bcN);
-    assert.ok(Math.abs(totalShift - params.tzDiff) < 0.01,
-      `Total body clock shift should equal tzDiff (${params.tzDiff}h), got ${totalShift}h`);
+  it('on final day: body clock 6AM is at 6AM destination time', () => {
+    const dayDate = dep(LHR, 8); // a recovery day date at destination
+    const bc = getBodyClock6AM(params.daysToAdapt, params, JFK, LHR, dayDate);
+    const wc = wallClock(bc, LHR.tz);
+    assert.ok(Math.abs(wc.hour - 6) < 0.1,
+      `Final day body clock 6AM should be 6 AM London, got ${wc.hour}:${wc.minute}`);
   });
 
-  it('shifts by tzDiff/daysToAdapt each day', () => {
-    const shiftPerDay = params.tzDiff / params.daysToAdapt;
-    const bc0 = getBodyClock6AM(0, params, JFK, LHR, departure);
-    const bc1 = getBodyClock6AM(1, params, JFK, LHR, departure);
-    const actualShift = hoursBetween(bc0, bc1);
-    assert.ok(Math.abs(actualShift - shiftPerDay) < 0.01,
-      `Expected shift of ${shiftPerDay}h/day, got ${actualShift}h`);
+  it('shifts by a consistent amount each day', () => {
+    const dayDate = dep(LHR, 9); // a mid-recovery day at destination
+    const bc0 = getBodyClock6AM(0, params, JFK, LHR, dayDate);
+    const bc1 = getBodyClock6AM(1, params, JFK, LHR, dayDate);
+    const bc2 = getBodyClock6AM(2, params, JFK, LHR, dayDate);
+    const shift01 = hoursBetween(bc0, bc1);
+    const shift12 = hoursBetween(bc1, bc2);
+    assert.ok(Math.abs(shift01 - shift12) < 0.01,
+      `Shift should be uniform each day (${shift01}h vs ${shift12}h)`);
+    // For eastward travel the body clock 6AM moves earlier in UTC each day
+    assert.ok(shift01 < 0, `Eastward: body clock 6AM should move earlier in UTC (got ${shift01}h)`);
   });
 });
