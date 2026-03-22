@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build-airports": "node scripts/build-airport-data.cjs",
-    "serve": "npx serve ."
+    "serve": "npx serve .",
+    "test": "node --test tests/*.test.js"
   },
   "keywords": ["jet-lag", "travel", "circadian", "health"],
   "author": "",
